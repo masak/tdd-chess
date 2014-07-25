@@ -1,24 +1,24 @@
 'use strict';
 
-var testBoard = board.clone();
+var testState = gameState.clone();
 
 var checkMoves = function(assert, conf) {
-    testBoard.empty();
+    testState.reset();
     var pos = conf.initPos,
         i = pos[0],
         j = pos[1],
         piece = conf.piece;
-    testBoard[i][j] = conf.piece;
+    testState.board[i][j] = conf.piece;
 
     for (var i in conf.legal) {
         var newPos = conf.legal[i];
-        var move = new Move(testBoard, pos, newPos);
+        var move = new Move(testState, pos, newPos);
         assert.ok(move.isLegal(), "Legal: moving a " + piece.name + " from " + pos + " to " + newPos);
     }
 
     for (var i in conf.illegal) {
         var newPos = conf.illegal[i];
-        var move = new Move(testBoard, pos, newPos);
+        var move = new Move(testState, pos, newPos);
         assert.ok(!move.isLegal(), "Illegal: moving a " + piece.name + " from " + pos + " to " + newPos);
     }
 };

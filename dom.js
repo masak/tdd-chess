@@ -32,10 +32,10 @@ initializePieces.pieces = [
     [Piece.BLACK_KING, Piece.BLACK_QUEEN, Piece.BLACK_ROOK, Piece.BLACK_BISHOP, Piece.BLACK_KNIGHT, Piece.BLACK_PAWN]
 ];
 
-var domUpdate = function(board) {
+var domUpdate = function(gameState) {
     $('#board tr').each(function(i, row) {
         $(row).find('td').each(function(j, cell) {
-            $(cell).html( board[i][j].symbol() );
+            $(cell).html( gameState.board[i][j].symbol() );
         });
     });
 };
@@ -71,9 +71,9 @@ var initializePlacementLogic = function() {
             var toPos = posFromSquare($('#board'), event.target);
             if (boardSquareSelected) {
                 var fromPos = posFromSquare($('#board'), selectedSquare);
-                var move = new Move(board, fromPos, toPos);
+                var move = new Move(gameState, fromPos, toPos);
                 if (move.isLegal()) {
-                    board.makeMove(move);
+                    gameState.makeMove(move);
                 }
                 else {
                     $('#board').addClass('illegal-move');
@@ -84,10 +84,10 @@ var initializePlacementLogic = function() {
             }
             else {
                 var fromPos = posFromSquare($('#pieces'), selectedSquare);
-                board[toPos[0]][toPos[1]] = initializePieces.pieces[fromPos[0]][fromPos[1]];
+                gameState.board[toPos[0]][toPos[1]] = initializePieces.pieces[fromPos[0]][fromPos[1]];
             }
 
-            domUpdate(board);
+            domUpdate(gameState);
             $(selectedSquare).removeClass('selected');
             selectedSquare = undefined;
         }
@@ -105,12 +105,12 @@ var initializePlacementLogic = function() {
 
 var initializeActions = function() {
     var emptyBoard = function() {
-        board.empty();
-        domUpdate(board);
+        gameState.reset();
+        domUpdate(gameState);
     };
     var chessBoard = function() {
-        board.chess();
-        domUpdate(board);
+        gameState.chess();
+        domUpdate(gameState);
     };
     var actions = [
         { label: "Empty board", fn: emptyBoard },

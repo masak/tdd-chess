@@ -80,10 +80,10 @@ var EMPTY = {
     symbol: function() { return "" }
 };
 
-var Move = function(board, fromPos, toPos) {
+var Move = function(gameState, fromPos, toPos) {
     this.fromPos = fromPos;
     this.toPos = toPos;
-    this.piece = board[ fromPos[0] ][ fromPos[1] ];
+    this.piece = gameState.board[ fromPos[0] ][ fromPos[1] ];
 };
 
 Move.prototype = {
@@ -126,71 +126,102 @@ Move.prototype = {
     }
 };
 
-var board = (function () {
-    var board = [];
-    for (var i = 0; i < 8; i++) {
-        var row = [];
-        for (var j = 0; j < 8; j++) {
-            row.push(EMPTY);
-        }
-        board.push(row);
-    }
+var gameState = {
+    playerOnTurn: Color.WHITE,
 
-    board.empty = function() {
-        for (var i = 0; i < 8; i++) {
-            for (var j = 0; j < 8; j++) {
-                this[i][j] = EMPTY;
-            }
-        }
-    };
-
-    board.chess = function() {
-        this.empty();
-
-        var pieces = [
-            [Piece.WHITE_ROOK, Piece.WHITE_KNIGHT, Piece.WHITE_BISHOP, Piece.WHITE_QUEEN,
-                Piece.WHITE_KING, Piece.WHITE_BISHOP, Piece.WHITE_KNIGHT, Piece.WHITE_ROOK],
-            [Piece.WHITE_PAWN, Piece.WHITE_PAWN, Piece.WHITE_PAWN, Piece.WHITE_PAWN,
-                Piece.WHITE_PAWN, Piece.WHITE_PAWN, Piece.WHITE_PAWN, Piece.WHITE_PAWN],
-            [Piece.BLACK_PAWN, Piece.BLACK_PAWN, Piece.BLACK_PAWN, Piece.BLACK_PAWN,
-                Piece.BLACK_PAWN, Piece.BLACK_PAWN, Piece.BLACK_PAWN, Piece.BLACK_PAWN],
-            [Piece.BLACK_ROOK, Piece.BLACK_KNIGHT, Piece.BLACK_BISHOP, Piece.BLACK_QUEEN,
-                Piece.BLACK_KING, Piece.BLACK_BISHOP, Piece.BLACK_KNIGHT, Piece.BLACK_ROOK]
-        ];
-
-        var rows = [0, 1, 6, 7];
-        for (var i in rows) {
-            var r = rows[i];
-            this[r] = pieces[i];
-        }
-    };
-
-    board.makeMove = function(move) {
-        this[move.toPos[0]][move.toPos[1]] = this[move.fromPos[0]][move.fromPos[1]];
-        this[move.fromPos[0]][move.fromPos[1]] = EMPTY;
-    };
-
-    board.clone = function() {
-        var newBoard = [];
+    board: (function () {
+        var board = [];
         for (var i = 0; i < 8; i++) {
             var row = [];
             for (var j = 0; j < 8; j++) {
-                row.push(this[i][j]);
+                row.push(EMPTY);
             }
-            newBoard.push(row);
+            board.push(row);
         }
+
+        board.empty = function() {
+            for (var i = 0; i < 8; i++) {
+                for (var j = 0; j < 8; j++) {
+                    this[i][j] = EMPTY;
+                }
+            }
+        };
+
+        board.chess = function() {
+            this.empty();
+
+            var pieces = [
+                [Piece.WHITE_ROOK, Piece.WHITE_KNIGHT, Piece.WHITE_BISHOP, Piece.WHITE_QUEEN,
+                    Piece.WHITE_KING, Piece.WHITE_BISHOP, Piece.WHITE_KNIGHT, Piece.WHITE_ROOK],
+                [Piece.WHITE_PAWN, Piece.WHITE_PAWN, Piece.WHITE_PAWN, Piece.WHITE_PAWN,
+                    Piece.WHITE_PAWN, Piece.WHITE_PAWN, Piece.WHITE_PAWN, Piece.WHITE_PAWN],
+                [Piece.BLACK_PAWN, Piece.BLACK_PAWN, Piece.BLACK_PAWN, Piece.BLACK_PAWN,
+                    Piece.BLACK_PAWN, Piece.BLACK_PAWN, Piece.BLACK_PAWN, Piece.BLACK_PAWN],
+                [Piece.BLACK_ROOK, Piece.BLACK_KNIGHT, Piece.BLACK_BISHOP, Piece.BLACK_QUEEN,
+                    Piece.BLACK_KING, Piece.BLACK_BISHOP, Piece.BLACK_KNIGHT, Piece.BLACK_ROOK]
+            ];
+
+            var rows = [0, 1, 6, 7];
+            for (var i in rows) {
+                var r = rows[i];
+                this[r] = pieces[i];
+            }
+        };
+
+        board.makeMove = function(move) {
+            this[move.toPos[0]][move.toPos[1]] = this[move.fromPos[0]][move.fromPos[1]];
+            this[move.fromPos[0]][move.fromPos[1]] = EMPTY;
+        };
+
+        board.clone = function() {
+            var newBoard = [];
+            for (var i = 0; i < 8; i++) {
+                var row = [];
+                for (var j = 0; j < 8; j++) {
+                    row.push(this[i][j]);
+                }
+                newBoard.push(row);
+            }
+
+            for (var prop in this) {
+                if (prop.match(/^\d+$/)) {
+                    continue;
+                }
+                if (this.hasOwnProperty(prop)) {
+                    newBoard[prop] = this[prop];
+                }
+            }
+
+            return newBoard;
+        };
+
+        return board;
+    })(),
+
+    reset: function() {
+        this.playerOnTurn = Color.WHITE;
+        this.board.empty();
+    },
+
+    chess: function() {
+        this.playerOnTurn = Color.WHITE;
+        this.board.chess();
+    },
+
+    makeMove: function(move) {
+        this.board.makeMove(move);
+    },
+
+    clone: function() {
+        var newState = {};
 
         for (var prop in this) {
-            if (prop.match(/^\d+$/)) {
-                continue;
-            }
             if (this.hasOwnProperty(prop)) {
-                newBoard[prop] = this[prop];
+                newState[prop] = this[prop];
             }
         }
+        newState.board = this.board.clone();
 
-        return newBoard;
-    };
-
-    return board;
-})();
+        return newState;
+    }
+};
