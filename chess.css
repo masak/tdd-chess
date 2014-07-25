@@ -3,6 +3,10 @@
 #actions {
   border-collapse: collapse;
   cursor: default;
+
+  -moz-box-shadow:    6px 6px 5px 2px #999;
+  -webkit-box-shadow: 6px 6px 5px 2px #999;
+  box-shadow:         6px 6px 5px 2px #999;
 }
 
 #board td,
