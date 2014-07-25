@@ -18,28 +18,53 @@
   <script src="jquery-2.1.1.min.js"></script>
 
   <script>
-    var board = $('#board');
-    for (var rank = 0; rank < 8; rank++) {
-      var row = $('<tr></tr>');
-      for (var file = 0; file < 8; file++) {
-        var color = (rank + file) % 2 ? 'dark' : 'light';
-        var square = $('<td></td>').addClass(color);
-        row.append(square);
+    var initializeBoard = function() {
+      var board = $('#board');
+      for (var rank = 0; rank < 8; rank++) {
+        var row = $('<tr></tr>');
+        for (var file = 0; file < 8; file++) {
+          var color = (rank + file) % 2 ? 'dark' : 'light';
+          var square = $('<td></td>').addClass(color);
+          row.append(square);
+        }
+        board.append(row);
       }
-      board.append(row);
-    }
+    };
 
-    var pieces = $('#pieces');
-    var colors = ['white', 'black'];
-    for (var i in colors) {
-      var color = colors[i];
-      var row = $('<tr></tr>');
-      for (var j = 0; j < 6; j++) {
-        var symbol = '&#' + (9812 + 6 * i + j) + ';';
-        var square = $('<td></td>').html(symbol);
-        row.append(square);
+    var initializePieces = function() {
+      var pieces = $('#pieces');
+      var colors = ['white', 'black'];
+      for (var i in colors) {
+        var color = colors[i];
+        var row = $('<tr></tr>');
+        for (var j = 0; j < 6; j++) {
+          var symbol = '&#' + (9812 + 6 * i + j) + ';';
+          var square = $('<td></td>').html(symbol);
+          row.append(square);
+        }
+        pieces.append(row);
       }
-      pieces.append(row);
-    }
+    };
+
+    var initializeSelectionLogic = function() {
+      var selectedSquare;
+      $('#pieces').on('click', 'td', function(event) {
+        $(selectedSquare).removeClass('selected');
+        selectedSquare = event.target;
+        $(selectedSquare).addClass('selected');
+      });
+
+      $('#board').on('click', 'td', function(event) {
+        if (selectedSquare) {
+          $(event.target).html( $(selectedSquare).html() );
+          $(selectedSquare).removeClass('selected');
+          selectedSquare = undefined;
+        }
+      });
+    };
+
+    initializeBoard();
+    initializePieces();
+    initializeSelectionLogic();
   </script>
 </html>

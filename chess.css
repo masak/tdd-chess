@@ -2,9 +2,16 @@
   border-collapse: collapse;
 }
 
-#board td {
+#board td,
+#pieces td {
   width: 60px;
   height: 60px;
+  text-align: center;
+  font-family: sans;
+  font-size: 32pt;
+}
+
+#board td {
   border: solid 1px white;
 }
 
@@ -23,10 +30,10 @@
 }
 
 #pieces td {
-  width: 60px;
-  height: 60px;
   border: solid 1px #666;
-  text-align: center;
-  font-family: sans;
-  font-size: 32pt;
+}
+
+#board .selected,
+#pieces .selected {
+  background: #fd3;
 }
