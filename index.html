@@ -5,6 +5,7 @@
     <title>Chess</title>
 
     <link rel="stylesheet" href="chess.css">
+    <link rel="stylesheet" href="qunit-1.14.0.css">
   </head>
   <body>
     <table id="board">
@@ -15,11 +16,20 @@
 
     <table id="actions">
     </table>
+
+    <div id="to-the-side">
+      <div id="qunit"></div>
+      <div id="qunit-fixture"></div>
+    </div>
   </body>
 
   <script src="chess.js"></script>
-  <script src="dom.js"></script>
+
   <script src="jquery-2.1.1.min.js"></script>
+  <script src="dom.js"></script>
+
+  <script src="qunit-1.14.0.js"></script>
+  <script src="tests.js"></script>
 
   <script>
     initializeBoard();

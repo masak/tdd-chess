@@ -53,3 +53,9 @@
   padding-right: 1em;
   border: solid 1px #666;
 }
+
+#to-the-side {
+  position: absolute;
+  top: 0;
+  left: 600px;
+}
