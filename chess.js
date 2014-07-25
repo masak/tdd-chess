@@ -12,6 +12,15 @@ var Type = {
             var sameFile = fromPos[1] == toPos[1];
             return sameRank != sameFile;
         }
+    },
+    KNIGHT: {
+        name: "knight",
+        jumpIsLegal: function(fromPos, toPos) {
+            var rankDist = Math.abs(fromPos[0] - toPos[0]),
+                fileDist = Math.abs(fromPos[1] - toPos[1]);
+            return rankDist == 1 && fileDist == 2 ||
+                    rankDist == 2 && fileDist == 1;
+        }
     }
 };
 
@@ -27,6 +36,7 @@ Piece.prototype.jumpIsLegal = function(fromPos, toPos) {
 };
 
 Piece.WHITE_ROOK = new Piece(Color.WHITE, Type.ROOK);
+Piece.WHITE_KNIGHT = new Piece(Color.WHITE, Type.KNIGHT);
 
 var Move = function(board, fromPos, toPos) {
     this.fromPos = fromPos;

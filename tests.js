@@ -38,3 +38,22 @@ QUnit.test( "rook moves", function( assert ) {
         ]
     });
 });
+
+QUnit.test( "knight moves", function( assert ) {
+    checkMoves(assert, {
+        piece: Piece.WHITE_KNIGHT,
+        initPos: [5, 4],
+        legal: [
+            [3, 3],
+            [4, 2],
+            [4, 6],
+            [7, 5]
+        ],
+        illegal: [
+            [5, 5],
+            [5, 6],
+            [5, 7],
+            [7, 6]
+        ]
+    });
+});
