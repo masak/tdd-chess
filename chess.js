@@ -85,6 +85,9 @@ var Move = function(gameState, fromPos, toPos) {
     this.toPos = toPos;
     this.piece = gameState.board[ fromPos[0] ][ fromPos[1] ];
     this.playerOnTurn = gameState.playerOnTurn;
+    this.make = function() {
+        gameState.makeMove(this);
+    };
 };
 
 Move.prototype = {

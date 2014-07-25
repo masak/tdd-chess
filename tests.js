@@ -179,7 +179,7 @@ QUnit.test( "turn alternates between players", function( assert ) {
     var move = new Move(testState, [6, 4], [5, 4]);
     assert.ok(!move.isLegal(), "black cannot start");
 
-    testState.makeMove(new Move(testState, [1, 4], [2, 4]));
+    new Move(testState, [1, 4], [2, 4]).make();
     move = new Move(testState, [6, 4], [5, 4]);
     assert.ok(move.isLegal(), "black can move after white made a move");
 });

@@ -73,7 +73,7 @@ var initializePlacementLogic = function() {
                 var fromPos = posFromSquare($('#board'), selectedSquare);
                 var move = new Move(gameState, fromPos, toPos);
                 if (move.isLegal()) {
-                    gameState.makeMove(move);
+                    move.make();
                 }
                 else {
                     $('#board').addClass('illegal-move');
