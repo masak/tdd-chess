@@ -185,7 +185,6 @@ var board = (function () {
                 continue;
             }
             if (this.hasOwnProperty(prop)) {
-                console.log(prop);
                 newBoard[prop] = this[prop];
             }
         }
