@@ -54,7 +54,9 @@
 }
 
 #board td.selected,
-#pieces td.selected {
+#board td.selected:hover,
+#pieces td.selected,
+#pieces td.selected:hover {
   background: #fd3;
 }
 
