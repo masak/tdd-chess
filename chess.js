@@ -28,6 +28,12 @@ var Type = {
         jumpIsLegal: function(move) {
             return Type.ROOK.jumpIsLegal(move) || Type.BISHOP.jumpIsLegal(move);
         }
+    },
+    KING: {
+        name: "king",
+        jumpIsLegal: function(move) {
+            return move.isOneStep();
+        }
     }
 };
 
@@ -46,6 +52,7 @@ Piece.WHITE_ROOK = new Piece(Color.WHITE, Type.ROOK);
 Piece.WHITE_KNIGHT = new Piece(Color.WHITE, Type.KNIGHT);
 Piece.WHITE_BISHOP = new Piece(Color.WHITE, Type.BISHOP);
 Piece.WHITE_QUEEN = new Piece(Color.WHITE, Type.QUEEN);
+Piece.WHITE_KING = new Piece(Color.WHITE, Type.KING);
 
 var Move = function(board, fromPos, toPos) {
     this.fromPos = fromPos;
@@ -81,6 +88,10 @@ Move.prototype = {
 
     isDiagonal: function() {
         return this.rankDist() === this.fileDist();
+    },
+
+    isOneStep: function() {
+        return this.rankDist() <= 1 && this.fileDist() <= 1;
     }
 };
 

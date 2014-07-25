@@ -100,3 +100,30 @@ QUnit.test( "queen moves", function( assert ) {
         ]
     });
 });
+
+QUnit.test( "king moves", function( assert ) {
+    checkMoves(assert, {
+        piece: Piece.WHITE_KING,
+        initPos: [5, 4],
+        legal: [
+            [6, 4],
+            [4, 4],
+            [5, 3],
+            [5, 5],
+            [4, 5],
+            [6, 5],
+        ],
+        illegal: [
+            [7, 4],
+            [0, 4],
+            [5, 2],
+            [5, 6],
+            [3, 6],
+            [2, 1],
+            [3, 3],
+            [4, 2],
+            [7, 5],
+            [0, 0]
+        ]
+    });
+});
