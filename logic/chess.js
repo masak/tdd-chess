@@ -215,21 +215,28 @@ var gameState = {
         board.chess = function() {
             this.empty();
 
-            var pieces = [
-                [Piece.BLACK_ROOK, Piece.BLACK_KNIGHT, Piece.BLACK_BISHOP, Piece.BLACK_QUEEN,
-                    Piece.BLACK_KING, Piece.BLACK_BISHOP, Piece.BLACK_KNIGHT, Piece.BLACK_ROOK],
-                [Piece.BLACK_PAWN, Piece.BLACK_PAWN, Piece.BLACK_PAWN, Piece.BLACK_PAWN,
-                    Piece.BLACK_PAWN, Piece.BLACK_PAWN, Piece.BLACK_PAWN, Piece.BLACK_PAWN],
-                [Piece.WHITE_PAWN, Piece.WHITE_PAWN, Piece.WHITE_PAWN, Piece.WHITE_PAWN,
-                    Piece.WHITE_PAWN, Piece.WHITE_PAWN, Piece.WHITE_PAWN, Piece.WHITE_PAWN],
-                [Piece.WHITE_ROOK, Piece.WHITE_KNIGHT, Piece.WHITE_BISHOP, Piece.WHITE_QUEEN,
-                    Piece.WHITE_KING, Piece.WHITE_BISHOP, Piece.WHITE_KNIGHT, Piece.WHITE_ROOK]
-            ];
+            var br = Piece.BLACK_ROOK,
+                bn = Piece.BLACK_KNIGHT,
+                bb = Piece.BLACK_BISHOP,
+                bq = Piece.BLACK_QUEEN,
+                bk = Piece.BLACK_KING,
+                bp = Piece.BLACK_PAWN,
+                wr = Piece.WHITE_ROOK,
+                wn = Piece.WHITE_KNIGHT,
+                wb = Piece.WHITE_BISHOP,
+                wq = Piece.WHITE_QUEEN,
+                wk = Piece.WHITE_KING,
+                wp = Piece.WHITE_PAWN;
 
-            var rows = [0, 1, 6, 7];
-            for (var i in rows) {
-                var r = rows[i];
-                this[r] = pieces[i];
+            var pieces = {
+                0: [br, bn, bb, bq, bk, bb, bn, br],
+                1: [bp, bp, bp, bp, bp, bp, bp, bp],
+                6: [wr, wp, wp, wp, wp, wp, wp, wp],
+                7: [wr, wn, wb, wq, wk, wb, wn, wr]
+            };
+
+            for (var row in pieces) {
+                this[row] = pieces[row];
             }
         };
 
