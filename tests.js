@@ -57,3 +57,22 @@ QUnit.test( "knight moves", function( assert ) {
         ]
     });
 });
+
+QUnit.test( "bishop moves", function( assert ) {
+    checkMoves(assert, {
+        piece: Piece.WHITE_BISHOP,
+        initPos: [5, 4],
+        legal: [
+            [4, 5],
+            [3, 6],
+            [6, 5],
+            [2, 1]
+        ],
+        illegal: [
+            [5, 5],
+            [5, 6],
+            [5, 7],
+            [4, 2]
+        ]
+    });
+});

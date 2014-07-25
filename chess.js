@@ -16,6 +16,12 @@ var Type = {
         jumpIsLegal: function(move) {
             return move.isKnightMove();
         }
+    },
+    BISHOP: {
+        name: "bishop",
+        jumpIsLegal: function(move) {
+            return move.isDiagonal();
+        }
     }
 };
 
@@ -32,6 +38,7 @@ Piece.prototype.jumpIsLegal = function(fromPos, toPos) {
 
 Piece.WHITE_ROOK = new Piece(Color.WHITE, Type.ROOK);
 Piece.WHITE_KNIGHT = new Piece(Color.WHITE, Type.KNIGHT);
+Piece.WHITE_BISHOP = new Piece(Color.WHITE, Type.BISHOP);
 
 var Move = function(board, fromPos, toPos) {
     this.fromPos = fromPos;
@@ -63,6 +70,10 @@ Move.prototype = {
     isKnightMove: function() {
         return this.rankDist() === 1 && this.fileDist() === 2 ||
                this.rankDist() === 2 && this.fileDist() === 1;
+    },
+
+    isDiagonal: function() {
+        return this.rankDist() === this.fileDist();
     }
 };
 
