@@ -1,3 +1,5 @@
+'use strict';
+
 var initializeBoard = function() {
     var board = $('#board');
     for (var rank = 0; rank < 8; rank++) {
@@ -26,6 +28,14 @@ var initializePieces = function() {
     }
 };
 
+var domUpdate = function(board) {
+    $('#board tr').each(function(i, row) {
+        $(row).find('td').each(function(j, cell) {
+            $(cell).html( board[i][j] );
+        });
+    });
+};
+
 var initializeSelectionLogic = function() {
     var selectedSquare;
     $('#pieces').on('click', 'td', function(event) {
@@ -34,9 +44,24 @@ var initializeSelectionLogic = function() {
         $(selectedSquare).addClass('selected');
     });
 
+    var posFromSquare = function(sought) {
+        var pos = {};
+        $('#board tr').each(function(i, row) {
+            $(row).find('td').each(function(j, cell) {
+                if (sought === cell) {
+                    pos.i = i;
+                    pos.j = j;
+                }
+            });
+        });
+        return pos;
+    };
+
     $('#board').on('click', 'td', function(event) {
         if (selectedSquare) {
-            $(event.target).html( $(selectedSquare).html() );
+            var pos = posFromSquare(event.target);
+            board[pos.i][pos.j] = $(selectedSquare).html();
+            domUpdate(board);
             $(selectedSquare).removeClass('selected');
             selectedSquare = undefined;
         }
@@ -45,47 +70,16 @@ var initializeSelectionLogic = function() {
 
 var initializeActions = function() {
     var emptyBoard = function() {
-        $('#board td').each(function(_, cell) {
-            $(cell).html("");
-        });
+        board.empty();
+        domUpdate(board);
     };
     var chessBoard = function() {
-        var piece = function(i, j) {
-            return '&#' + (9812 + 6 * i + j) + ';';
-        };
-        var WHITE_KING = piece(0, 0),
-            WHITE_QUEEN = piece(0, 1),
-            WHITE_ROOK = piece(0, 2),
-            WHITE_BISHOP = piece(0, 3),
-            WHITE_KNIGHT = piece(0, 4),
-            WHITE_PAWN = piece(0, 5),
-            BLACK_KING = piece(1, 0),
-            BLACK_QUEEN = piece(1, 1),
-            BLACK_ROOK = piece(1, 2),
-            BLACK_BISHOP = piece(1, 3),
-            BLACK_KNIGHT = piece(1, 4),
-            BLACK_PAWN = piece(1, 5);
-        emptyBoard();
-        var pieces = [
-            [WHITE_ROOK, WHITE_KNIGHT, WHITE_BISHOP, WHITE_QUEEN, WHITE_KING, WHITE_BISHOP, WHITE_KNIGHT, WHITE_ROOK],
-            [WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN],
-            [BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN],
-            [BLACK_ROOK, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BLACK_BISHOP, BLACK_KNIGHT, BLACK_ROOK]
-        ];
-        $('#board tr').eq(0).find('td').each(function(i, cell) { $(cell).html( pieces[0][i] ) });
-        $('#board tr').eq(1).find('td').each(function(i, cell) { $(cell).html( pieces[1][i] ) });
-        $('#board tr').eq(6).find('td').each(function(i, cell) { $(cell).html( pieces[2][i] ) });
-        $('#board tr').eq(7).find('td').each(function(i, cell) { $(cell).html( pieces[3][i] ) });
+        board.chess();
+        domUpdate(board);
     };
     var actions = [
-        {
-            label: "Empty board",
-            fn: emptyBoard
-        },
-        {
-            label: "Initial board",
-            fn: chessBoard
-        }
+        { label: "Empty board", fn: emptyBoard },
+        { label: "Initial board", fn: chessBoard }
     ];
 
     $('#actions').append('<tr></tr>');
