@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Chess</title>
+
+    <link rel="stylesheet" href="chess.css">
+  </head>
+  <body>
+    <table id="board">
+    </table>
+
+    <table id="pieces">
+    </table>
+  </body>
+
+  <script src="chess.js"></script>
+  <script src="jquery-2.1.1.min.js"></script>
+
+  <script>
+    var board = $('#board');
+    for (var rank = 0; rank < 8; rank++) {
+      var row = $('<tr></tr>');
+      for (var file = 0; file < 8; file++) {
+        var color = (rank + file) % 2 ? 'dark' : 'light';
+        var square = $('<td></td>').addClass(color);
+        row.append(square);
+      }
+      board.append(row);
+    }
+
+    var pieces = $('#pieces');
+    var colors = ['white', 'black'];
+    for (var i in colors) {
+      var color = colors[i];
+      var row = $('<tr></tr>');
+      for (var j = 0; j < 6; j++) {
+        var symbol = '&#' + (9812 + 6 * i + j) + ';';
+        var square = $('<td></td>').html(symbol);
+        row.append(square);
+      }
+      pieces.append(row);
+    }
+  </script>
+</html>

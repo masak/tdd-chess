@@ -1,0 +1,32 @@
+#board {
+  border-collapse: collapse;
+}
+
+#board td {
+  width: 60px;
+  height: 60px;
+  border: solid 1px white;
+}
+
+#board td.light {
+  background: #ddf;
+}
+
+#board td.dark {
+  background: #aaf;
+}
+
+#pieces {
+  margin-top: 60px;
+  margin-left: 60px;
+  border-collapse: collapse;
+}
+
+#pieces td {
+  width: 60px;
+  height: 60px;
+  border: solid 1px #666;
+  text-align: center;
+  font-family: sans;
+  font-size: 32pt;
+}
