@@ -198,7 +198,25 @@ QUnit.test( "pieces cannot take their own", function( assert ) {
     assert.ok(takeOpponentPawn.isLegal(), "can take opponent piece");
 });
 
-// pawn capture
+QUnit.test( "moving and capturing pawns", function( assert ) {
+    testState.reset();
+
+    testState.board[3][4] = Piece.WHITE_PAWN;
+    testState.board[4][4] = Piece.BLACK_QUEEN;
+
+    var forwardToCapture = new Move(testState, [3, 4], [4, 4]);
+    assert.ok(!forwardToCapture.isLegal(), "can't capture by moving forward");
+    var diagonalToMove = new Move(testState, [3, 4], [4, 5]);
+    assert.ok(!diagonalToMove.isLegal(), "can't do a normal move diagonally");
+
+    testState.board[4][4] = EMPTY;
+    testState.board[4][5] = Piece.BLACK_QUEEN;
+
+    var forwardToMove = new Move(testState, [3, 4], [4, 4]);
+    assert.ok(forwardToMove.isLegal(), "can do a normal move forward");
+    var diagonalToCapture = new Move(testState, [3, 4], [4, 5]);
+    assert.ok(diagonalToCapture.isLegal(), "can capture by moving diagonally");
+});
 
 // pieces cannot go through things
 // ...but the knight can

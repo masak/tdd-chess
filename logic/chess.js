@@ -100,6 +100,11 @@ Move.prototype = {
         if (this.targetSquare.color === this.piece.color) {
             return false;
         }
+        if (this.piece.type === Type.PAWN) {
+            if ((this.fileDist() === 0) !== (this.targetSquare === EMPTY)) {
+                return false;
+            }
+        }
         return this.piece.jumpIsLegal(this);
     },
 
