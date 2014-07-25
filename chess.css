@@ -36,6 +36,14 @@
   border: solid 1px #666;
 }
 
+#board td.light:hover {
+  background: #bbd;
+}
+
+#board td.dark:hover {
+  background: #77c;
+}
+
 #pieces td:hover,
 #actions td:hover {
   background: #ccc;
