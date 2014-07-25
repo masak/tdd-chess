@@ -171,3 +171,23 @@ QUnit.test( "pawn moves", function( assert ) {
         ]
     });
 });
+
+// whose turn it is
+
+// pieces cannot take their own
+// but they can take opponent pieces
+// pawn capture
+
+// pieces cannot go through things
+// ...but the knight can
+
+// castling
+
+// pawn double step
+// en passant
+// promotion
+
+// check
+// player cannot put himself into check
+// checkmate
+// it's a stalemate if player is not in check but cannot move
