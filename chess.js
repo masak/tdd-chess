@@ -22,6 +22,12 @@ var Type = {
         jumpIsLegal: function(move) {
             return move.isDiagonal();
         }
+    },
+    QUEEN: {
+        name: "queen",
+        jumpIsLegal: function(move) {
+            return Type.ROOK.jumpIsLegal(move) || Type.BISHOP.jumpIsLegal(move);
+        }
     }
 };
 
@@ -39,6 +45,7 @@ Piece.prototype.jumpIsLegal = function(fromPos, toPos) {
 Piece.WHITE_ROOK = new Piece(Color.WHITE, Type.ROOK);
 Piece.WHITE_KNIGHT = new Piece(Color.WHITE, Type.KNIGHT);
 Piece.WHITE_BISHOP = new Piece(Color.WHITE, Type.BISHOP);
+Piece.WHITE_QUEEN = new Piece(Color.WHITE, Type.QUEEN);
 
 var Move = function(board, fromPos, toPos) {
     this.fromPos = fromPos;
