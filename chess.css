@@ -1,4 +1,6 @@
-#board {
+#board,
+#pieces,
+#actions {
   border-collapse: collapse;
 }
 
@@ -23,17 +25,31 @@
   background: #aaf;
 }
 
-#pieces {
+#pieces,
+#actions {
   margin-top: 60px;
   margin-left: 60px;
-  border-collapse: collapse;
 }
 
 #pieces td {
   border: solid 1px #666;
 }
 
-#board .selected,
-#pieces .selected {
+#pieces td:hover,
+#actions td:hover {
+  background: #ccc;
+}
+
+#board td.selected,
+#pieces td.selected {
   background: #fd3;
+}
+
+#actions td {
+  height: 60px;
+  font-weight: bold;
+  text-align: center;
+  padding-left: 1em;
+  padding-right: 1em;
+  border: solid 1px #666;
 }
