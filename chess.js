@@ -55,10 +55,9 @@ Piece.prototype.jumpIsLegal = function(move) {
     return this.type.jumpIsLegal(move, this.color);
 };
 
-Piece.prototype.symbol = function(color, type) {
-    var i = ['white', 'black'].indexOf(this.color);
-    var j = ['king', 'queen', 'rook', 'bishop', 'knight', 'pawn'].indexOf(this.type.name);
-    return '&#' + (9812 + 6 * i + j) + ';';
+Piece.prototype.symbol = function(type) {
+    var i = ['king', 'queen', 'rook', 'bishop', 'knight', 'pawn'].indexOf(this.type.name);
+    return '&#' + (9818 + i) + ';';
 };
 
 Piece.WHITE_ROOK = new Piece(Color.WHITE, Type.ROOK);
