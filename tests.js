@@ -184,8 +184,20 @@ QUnit.test( "turn alternates between players", function( assert ) {
     assert.ok(move.isLegal(), "black can move after white made a move");
 });
 
-// pieces cannot take their own
-// but they can take opponent pieces
+QUnit.test( "pieces cannot take their own", function( assert ) {
+    testState.reset();
+
+    testState.board[3][3] = Piece.WHITE_QUEEN;
+    testState.board[5][5] = Piece.WHITE_PAWN;
+    testState.board[7][3] = Piece.BLACK_PAWN;
+
+    var takeOwnPawn = new Move(testState, [3, 3], [5, 5]);
+    assert.ok(!takeOwnPawn.isLegal(), "can't take own piece");
+
+    var takeOpponentPawn = new Move(testState, [3, 3], [7, 3]);
+    assert.ok(takeOpponentPawn.isLegal(), "can take opponent piece");
+});
+
 // pawn capture
 
 // pieces cannot go through things

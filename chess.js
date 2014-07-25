@@ -76,6 +76,8 @@ Piece.BLACK_KING = new Piece(Color.BLACK, Type.KING);
 Piece.BLACK_PAWN = new Piece(Color.BLACK, Type.PAWN);
 
 var EMPTY = {
+    color: undefined,
+    type: { name: "empty square" },
     jumpIsLegal: function() { return false },
     symbol: function() { return "" }
 };
@@ -84,6 +86,7 @@ var Move = function(gameState, fromPos, toPos) {
     this.fromPos = fromPos;
     this.toPos = toPos;
     this.piece = gameState.board[ fromPos[0] ][ fromPos[1] ];
+    this.targetSquare = gameState.board[ toPos[0] ][ toPos[1] ];
     this.playerOnTurn = gameState.playerOnTurn;
     this.make = function() {
         gameState.makeMove(this);
@@ -93,6 +96,9 @@ var Move = function(gameState, fromPos, toPos) {
 Move.prototype = {
     isLegal: function() {
         if (this.piece.color !== this.playerOnTurn) {
+            return false;
+        }
+        if (this.targetSquare.color === this.piece.color) {
             return false;
         }
         return this.piece.jumpIsLegal(this);
