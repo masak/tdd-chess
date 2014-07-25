@@ -55,6 +55,12 @@ Piece.prototype.jumpIsLegal = function(move) {
     return this.type.jumpIsLegal(move, this.color);
 };
 
+Piece.prototype.symbol = function(color, type) {
+    var i = ['white', 'black'].indexOf(this.color);
+    var j = ['king', 'queen', 'rook', 'bishop', 'knight', 'pawn'].indexOf(this.type.name);
+    return '&#' + (9812 + 6 * i + j) + ';';
+};
+
 Piece.WHITE_ROOK = new Piece(Color.WHITE, Type.ROOK);
 Piece.WHITE_KNIGHT = new Piece(Color.WHITE, Type.KNIGHT);
 Piece.WHITE_BISHOP = new Piece(Color.WHITE, Type.BISHOP);
@@ -68,6 +74,11 @@ Piece.BLACK_BISHOP = new Piece(Color.BLACK, Type.BISHOP);
 Piece.BLACK_QUEEN = new Piece(Color.BLACK, Type.QUEEN);
 Piece.BLACK_KING = new Piece(Color.BLACK, Type.KING);
 Piece.BLACK_PAWN = new Piece(Color.BLACK, Type.PAWN);
+
+var EMPTY = {
+    jumpIsLegal: function() { return false },
+    symbol: function() { return "" }
+};
 
 var Move = function(board, fromPos, toPos) {
     this.fromPos = fromPos;
@@ -116,15 +127,11 @@ Move.prototype = {
 };
 
 var board = (function () {
-    var piece = function(i, j) {
-        return '&#' + (9812 + 6 * i + j) + ';';
-    };
-
     var board = [];
     for (var i = 0; i < 8; i++) {
         var row = [];
         for (var j = 0; j < 8; j++) {
-            row.push("");
+            row.push(EMPTY);
         }
         board.push(row);
     }
@@ -132,7 +139,7 @@ var board = (function () {
     board.empty = function() {
         for (var i = 0; i < 8; i++) {
             for (var j = 0; j < 8; j++) {
-                board[i][j] = "";
+                board[i][j] = EMPTY;
             }
         }
     };
@@ -140,24 +147,15 @@ var board = (function () {
     board.chess = function() {
         board.empty();
 
-        var WHITE_KING = piece(0, 0),
-            WHITE_QUEEN = piece(0, 1),
-            WHITE_ROOK = piece(0, 2),
-            WHITE_BISHOP = piece(0, 3),
-            WHITE_KNIGHT = piece(0, 4),
-            WHITE_PAWN = piece(0, 5),
-            BLACK_KING = piece(1, 0),
-            BLACK_QUEEN = piece(1, 1),
-            BLACK_ROOK = piece(1, 2),
-            BLACK_BISHOP = piece(1, 3),
-            BLACK_KNIGHT = piece(1, 4),
-            BLACK_PAWN = piece(1, 5);
-
         var pieces = [
-            [WHITE_ROOK, WHITE_KNIGHT, WHITE_BISHOP, WHITE_QUEEN, WHITE_KING, WHITE_BISHOP, WHITE_KNIGHT, WHITE_ROOK],
-            [WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN],
-            [BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN],
-            [BLACK_ROOK, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BLACK_BISHOP, BLACK_KNIGHT, BLACK_ROOK]
+            [Piece.WHITE_ROOK, Piece.WHITE_KNIGHT, Piece.WHITE_BISHOP, Piece.WHITE_QUEEN,
+                Piece.WHITE_KING, Piece.WHITE_BISHOP, Piece.WHITE_KNIGHT, Piece.WHITE_ROOK],
+            [Piece.WHITE_PAWN, Piece.WHITE_PAWN, Piece.WHITE_PAWN, Piece.WHITE_PAWN,
+                Piece.WHITE_PAWN, Piece.WHITE_PAWN, Piece.WHITE_PAWN, Piece.WHITE_PAWN],
+            [Piece.BLACK_PAWN, Piece.BLACK_PAWN, Piece.BLACK_PAWN, Piece.BLACK_PAWN,
+                Piece.BLACK_PAWN, Piece.BLACK_PAWN, Piece.BLACK_PAWN, Piece.BLACK_PAWN],
+            [Piece.BLACK_ROOK, Piece.BLACK_KNIGHT, Piece.BLACK_BISHOP, Piece.BLACK_QUEEN,
+                Piece.BLACK_KING, Piece.BLACK_BISHOP, Piece.BLACK_KNIGHT, Piece.BLACK_ROOK]
         ];
 
         var rows = [0, 1, 6, 7];
@@ -169,7 +167,7 @@ var board = (function () {
 
     board.makeMove = function(fromPos, toPos) {
         board[toPos[0]][toPos[1]] = board[fromPos[0]][fromPos[1]];
-        board[fromPos[0]][fromPos[1]] = "";
+        board[fromPos[0]][fromPos[1]] = EMPTY;
     };
 
     return board;

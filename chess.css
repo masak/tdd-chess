@@ -30,6 +30,14 @@
   background: #aaf;
 }
 
+#board.illegal-move td.light {
+  background: #fdd;
+}
+
+#board.illegal-move td.dark {
+  background: #faa;
+}
+
 #pieces,
 #actions {
   margin-top: 60px;

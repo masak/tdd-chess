@@ -19,19 +19,24 @@ var initializePieces = function() {
     for (var i in colors) {
         var color = colors[i];
         var row = $('<tr></tr>');
+        var p = initializePieces.pieces;
         for (var j = 0; j < 6; j++) {
             var symbol = '&#' + (9812 + 6 * i + j) + ';';
-            var square = $('<td></td>').html(symbol);
+            var square = $('<td></td>').html(p[i][j].symbol());
             row.append(square);
         }
         pieces.append(row);
     }
 };
+initializePieces.pieces = [
+    [Piece.WHITE_KING, Piece.WHITE_QUEEN, Piece.WHITE_ROOK, Piece.WHITE_BISHOP, Piece.WHITE_KNIGHT, Piece.WHITE_PAWN],
+    [Piece.BLACK_KING, Piece.BLACK_QUEEN, Piece.BLACK_ROOK, Piece.BLACK_BISHOP, Piece.BLACK_KNIGHT, Piece.BLACK_PAWN]
+];
 
 var domUpdate = function(board) {
     $('#board tr').each(function(i, row) {
         $(row).find('td').each(function(j, cell) {
-            $(cell).html( board[i][j] );
+            $(cell).html( board[i][j].symbol() );
         });
     });
 };
@@ -47,9 +52,9 @@ var initializePlacementLogic = function() {
         boardSquareSelected = false;
     });
 
-    var posFromSquare = function(sought) {
+    var posFromSquare = function(table, sought) {
         var pos;
-        $('#board tr').each(function(i, row) {
+        table.find('tr').each(function(i, row) {
             $(row).find('td').each(function(j, cell) {
                 if (sought === cell) {
                     pos = [i, j];
@@ -64,13 +69,23 @@ var initializePlacementLogic = function() {
             if (event.target === selectedSquare) {
                 return;
             }
-            var toPos = posFromSquare(event.target);
+            var toPos = posFromSquare($('#board'), event.target);
             if (boardSquareSelected) {
-                var fromPos = posFromSquare(selectedSquare);
-                board.makeMove(fromPos, toPos);
+                var fromPos = posFromSquare($('#board'), selectedSquare);
+                var move = new Move(board, fromPos, toPos);
+                if (move.isLegal()) {
+                    board.makeMove(fromPos, toPos);
+                }
+                else {
+                    $('#board').addClass('illegal-move');
+                    setTimeout(function() {
+                        $('#board').removeClass('illegal-move');
+                    }, 2000);
+                }
             }
             else {
-                board[toPos[0]][toPos[1]] = $(selectedSquare).html();
+                var fromPos = posFromSquare($('#pieces'), selectedSquare);
+                board[toPos[0]][toPos[1]] = initializePieces.pieces[fromPos[0]][fromPos[1]];
             }
 
             domUpdate(board);
