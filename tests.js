@@ -9,6 +9,7 @@ var checkMoves = function(assert, conf) {
         j = pos[1],
         piece = conf.piece;
     testState.board[i][j] = conf.piece;
+    testState.playerOnTurn = piece.color;
 
     for (var i in conf.legal) {
         var newPos = conf.legal[i];
@@ -172,7 +173,16 @@ QUnit.test( "pawn moves", function( assert ) {
     });
 });
 
-// whose turn it is
+QUnit.test( "turn alternates between players", function( assert ) {
+    testState.chess();
+
+    var move = new Move(testState, [6, 4], [5, 4]);
+    assert.ok(!move.isLegal(), "black cannot start");
+
+    testState.makeMove(new Move(testState, [1, 4], [2, 4]));
+    move = new Move(testState, [6, 4], [5, 4]);
+    assert.ok(move.isLegal(), "black can move after white made a move");
+});
 
 // pieces cannot take their own
 // but they can take opponent pieces

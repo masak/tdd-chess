@@ -84,10 +84,14 @@ var Move = function(gameState, fromPos, toPos) {
     this.fromPos = fromPos;
     this.toPos = toPos;
     this.piece = gameState.board[ fromPos[0] ][ fromPos[1] ];
+    this.playerOnTurn = gameState.playerOnTurn;
 };
 
 Move.prototype = {
     isLegal: function() {
+        if (this.piece.color !== this.playerOnTurn) {
+            return false;
+        }
         return this.piece.jumpIsLegal(this);
     },
 
@@ -210,6 +214,7 @@ var gameState = {
 
     makeMove: function(move) {
         this.board.makeMove(move);
+        this.playerOnTurn = this.playerOnTurn === Color.WHITE ? Color.BLACK : Color.WHITE;
     },
 
     clone: function() {
