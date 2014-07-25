@@ -139,13 +139,13 @@ var board = (function () {
     board.empty = function() {
         for (var i = 0; i < 8; i++) {
             for (var j = 0; j < 8; j++) {
-                board[i][j] = EMPTY;
+                this[i][j] = EMPTY;
             }
         }
     };
 
     board.chess = function() {
-        board.empty();
+        this.empty();
 
         var pieces = [
             [Piece.WHITE_ROOK, Piece.WHITE_KNIGHT, Piece.WHITE_BISHOP, Piece.WHITE_QUEEN,
@@ -161,13 +161,36 @@ var board = (function () {
         var rows = [0, 1, 6, 7];
         for (var i in rows) {
             var r = rows[i];
-            board[r] = pieces[i];
+            this[r] = pieces[i];
         }
     };
 
     board.makeMove = function(fromPos, toPos) {
-        board[toPos[0]][toPos[1]] = board[fromPos[0]][fromPos[1]];
-        board[fromPos[0]][fromPos[1]] = EMPTY;
+        this[toPos[0]][toPos[1]] = this[fromPos[0]][fromPos[1]];
+        this[fromPos[0]][fromPos[1]] = EMPTY;
+    };
+
+    board.clone = function() {
+        var newBoard = [];
+        for (var i = 0; i < 8; i++) {
+            var row = [];
+            for (var j = 0; j < 8; j++) {
+                row.push(this[i][j]);
+            }
+            newBoard.push(row);
+        }
+
+        for (var prop in this) {
+            if (prop.match(/^\d+$/)) {
+                continue;
+            }
+            if (this.hasOwnProperty(prop)) {
+                console.log(prop);
+                newBoard[prop] = this[prop];
+            }
+        }
+
+        return newBoard;
     };
 
     return board;
