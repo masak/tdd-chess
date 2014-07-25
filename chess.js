@@ -165,9 +165,9 @@ var board = (function () {
         }
     };
 
-    board.makeMove = function(fromPos, toPos) {
-        this[toPos[0]][toPos[1]] = this[fromPos[0]][fromPos[1]];
-        this[fromPos[0]][fromPos[1]] = EMPTY;
+    board.makeMove = function(move) {
+        this[move.toPos[0]][move.toPos[1]] = this[move.fromPos[0]][move.fromPos[1]];
+        this[move.fromPos[0]][move.fromPos[1]] = EMPTY;
     };
 
     board.clone = function() {
