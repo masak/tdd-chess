@@ -127,3 +127,47 @@ QUnit.test( "king moves", function( assert ) {
         ]
     });
 });
+
+QUnit.test( "pawn moves", function( assert ) {
+    checkMoves(assert, {
+        piece: Piece.WHITE_PAWN,
+        initPos: [5, 4],
+        legal: [
+            [6, 4],
+        ],
+        illegal: [
+            [7, 4],
+            [0, 4],
+            [5, 2],
+            [5, 6],
+            [3, 6],
+            [2, 1],
+            [3, 3],
+            [4, 2],
+            [7, 5],
+            [0, 0],
+            [4, 4]
+        ]
+    });
+
+    checkMoves(assert, {
+        piece: Piece.BLACK_PAWN,
+        initPos: [5, 4],
+        legal: [
+            [4, 4],
+        ],
+        illegal: [
+            [7, 4],
+            [0, 4],
+            [5, 2],
+            [5, 6],
+            [3, 6],
+            [2, 1],
+            [3, 3],
+            [4, 2],
+            [7, 5],
+            [0, 0],
+            [6, 4]
+        ]
+    });
+});

@@ -1,7 +1,8 @@
 'use strict';
 
 var Color = {
-    WHITE: "white"
+    WHITE: "white",
+    BLACK: "black"
 };
 
 var Type = {
@@ -34,6 +35,12 @@ var Type = {
         jumpIsLegal: function(move) {
             return move.isOneStep();
         }
+    },
+    PAWN: {
+        name: "pawn",
+        jumpIsLegal: function(move, color) {
+            return move.isForwards(color) && move.isOneStep();
+        }
     }
 };
 
@@ -44,8 +51,8 @@ var Piece = function(color, type) {
     this.name = color + " " + type.name;
 };
 
-Piece.prototype.jumpIsLegal = function(fromPos, toPos) {
-    return this.type.jumpIsLegal(fromPos, toPos);
+Piece.prototype.jumpIsLegal = function(move) {
+    return this.type.jumpIsLegal(move, this.color);
 };
 
 Piece.WHITE_ROOK = new Piece(Color.WHITE, Type.ROOK);
@@ -53,6 +60,14 @@ Piece.WHITE_KNIGHT = new Piece(Color.WHITE, Type.KNIGHT);
 Piece.WHITE_BISHOP = new Piece(Color.WHITE, Type.BISHOP);
 Piece.WHITE_QUEEN = new Piece(Color.WHITE, Type.QUEEN);
 Piece.WHITE_KING = new Piece(Color.WHITE, Type.KING);
+Piece.WHITE_PAWN = new Piece(Color.WHITE, Type.PAWN);
+
+Piece.BLACK_ROOK = new Piece(Color.BLACK, Type.ROOK);
+Piece.BLACK_KNIGHT = new Piece(Color.BLACK, Type.KNIGHT);
+Piece.BLACK_BISHOP = new Piece(Color.BLACK, Type.BISHOP);
+Piece.BLACK_QUEEN = new Piece(Color.BLACK, Type.QUEEN);
+Piece.BLACK_KING = new Piece(Color.BLACK, Type.KING);
+Piece.BLACK_PAWN = new Piece(Color.BLACK, Type.PAWN);
 
 var Move = function(board, fromPos, toPos) {
     this.fromPos = fromPos;
@@ -92,6 +107,11 @@ Move.prototype = {
 
     isOneStep: function() {
         return this.rankDist() <= 1 && this.fileDist() <= 1;
+    },
+
+    isForwards: function(color) {
+        return color === "white" && this.toPos[0] > this.fromPos[0] ||
+               color === "black" && this.toPos[0] < this.fromPos[0];
     }
 };
 
