@@ -1,3 +1,16 @@
+#status {
+  width: 494px;
+
+  border: solid 1px #333;
+  cursor: default;
+  padding: 5px;
+  text-align: center;
+
+  -moz-box-shadow:    6px 6px 5px 2px #999;
+  -webkit-box-shadow: 6px 6px 5px 2px #999;
+  box-shadow:         6px 6px 5px 2px #999;
+}
+
 #board {
   border-collapse: collapse;
   cursor: default;
@@ -5,6 +18,8 @@
   -moz-box-shadow:    6px 6px 5px 2px #999;
   -webkit-box-shadow: 6px 6px 5px 2px #999;
   box-shadow:         6px 6px 5px 2px #999;
+
+  margin-top: 20px;
 }
 
 #board td {

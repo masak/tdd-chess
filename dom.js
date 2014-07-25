@@ -14,6 +14,11 @@ var initializeBoard = function() {
 };
 
 var domUpdate = function(gameState) {
+    var player = gameState.playerOnTurn;
+    var playerCapitalized = player.substring(0, 1).toUpperCase() + player.substring(1);
+    var symbol = (player === Color.WHITE ? Piece.WHITE_KING : Piece.BLACK_KING).symbol();
+    $('#status').html(playerCapitalized + " " + symbol + " to move");
+
     $('#board tr').each(function(i, row) {
         $(row).find('td').each(function(j, cell) {
             $(cell).html( gameState.board[i][j].symbol() );
