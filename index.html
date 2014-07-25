@@ -11,12 +11,6 @@
     <table id="board">
     </table>
 
-    <table id="pieces">
-    </table>
-
-    <table id="actions">
-    </table>
-
     <div id="to-the-side">
       <div id="qunit"></div>
       <div id="qunit-fixture"></div>
@@ -33,9 +27,7 @@
 
   <script>
     initializeBoard();
-    initializePieces();
     initializePlacementLogic();
-    initializeActions();
 
     gameState.chess();
     domUpdate(gameState);

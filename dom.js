@@ -13,25 +13,6 @@ var initializeBoard = function() {
     }
 };
 
-var initializePieces = function() {
-    var pieces = $('#pieces');
-    var colors = ['white', 'black'];
-    for (var i in colors) {
-        var color = colors[i];
-        var row = $('<tr></tr>');
-        var p = initializePieces.pieces;
-        for (var j = 0; j < 6; j++) {
-            var square = $('<td></td>').html(p[i][j].symbol());
-            row.append(square);
-        }
-        pieces.append(row);
-    }
-};
-initializePieces.pieces = [
-    [Piece.WHITE_KING, Piece.WHITE_QUEEN, Piece.WHITE_ROOK, Piece.WHITE_BISHOP, Piece.WHITE_KNIGHT, Piece.WHITE_PAWN],
-    [Piece.BLACK_KING, Piece.BLACK_QUEEN, Piece.BLACK_ROOK, Piece.BLACK_BISHOP, Piece.BLACK_KNIGHT, Piece.BLACK_PAWN]
-];
-
 var domUpdate = function(gameState) {
     $('#board tr').each(function(i, row) {
         $(row).find('td').each(function(j, cell) {
@@ -42,14 +23,6 @@ var domUpdate = function(gameState) {
 
 var initializePlacementLogic = function() {
     var selectedSquare;
-    var boardSquareSelected;
-
-    $('#pieces').on('click', 'td', function(event) {
-        $(selectedSquare).removeClass('selected');
-        selectedSquare = event.target;
-        $(selectedSquare).addClass('selected');
-        boardSquareSelected = false;
-    });
 
     var posFromSquare = function(table, sought) {
         var pos;
@@ -68,26 +41,20 @@ var initializePlacementLogic = function() {
             if (event.target === selectedSquare) {
                 return;
             }
+            var fromPos = posFromSquare($('#board'), selectedSquare);
             var toPos = posFromSquare($('#board'), event.target);
-            if (boardSquareSelected) {
-                var fromPos = posFromSquare($('#board'), selectedSquare);
-                var move = new Move(gameState, fromPos, toPos);
-                if (move.isLegal()) {
-                    move.make();
-                }
-                else {
-                    $('#board').addClass('illegal-move');
-                    setTimeout(function() {
-                        $('#board').removeClass('illegal-move');
-                    }, 2000);
-                }
+            var move = new Move(gameState, fromPos, toPos);
+            if (move.isLegal()) {
+                move.make();
+                domUpdate(gameState);
             }
             else {
-                var fromPos = posFromSquare($('#pieces'), selectedSquare);
-                gameState.board[toPos[0]][toPos[1]] = initializePieces.pieces[fromPos[0]][fromPos[1]];
+                $('#board').addClass('illegal-move');
+                setTimeout(function() {
+                    $('#board').removeClass('illegal-move');
+                }, 2000);
             }
 
-            domUpdate(gameState);
             $(selectedSquare).removeClass('selected');
             selectedSquare = undefined;
         }
@@ -98,31 +65,6 @@ var initializePlacementLogic = function() {
             $(selectedSquare).removeClass('selected');
             selectedSquare = event.target;
             $(selectedSquare).addClass('selected');
-            boardSquareSelected = true;
         }
     });
-};
-
-var initializeActions = function() {
-    var emptyBoard = function() {
-        gameState.reset();
-        domUpdate(gameState);
-    };
-    var chessBoard = function() {
-        gameState.chess();
-        domUpdate(gameState);
-    };
-    var actions = [
-        { label: "Empty board", fn: emptyBoard },
-        { label: "Initial board", fn: chessBoard }
-    ];
-
-    $('#actions').append('<tr></tr>');
-    for (var i in actions) {
-        var action = actions[i];
-        var cell = $('<td></td>')
-            .html(action.label)
-            .on('click', action.fn);
-        $('#actions tr').append(cell);
-    }
 };

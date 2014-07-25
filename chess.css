@@ -1,6 +1,4 @@
-#board,
-#pieces,
-#actions {
+#board {
   border-collapse: collapse;
   cursor: default;
 
@@ -9,8 +7,7 @@
   box-shadow:         6px 6px 5px 2px #999;
 }
 
-#board td,
-#pieces td {
+#board td {
   width: 60px;
   height: 60px;
   text-align: center;
@@ -38,16 +35,6 @@
   background: #faa;
 }
 
-#pieces,
-#actions {
-  margin-top: 60px;
-  margin-left: 60px;
-}
-
-#pieces td {
-  border: solid 1px #666;
-}
-
 #board td.light:hover {
   background: #bbd;
 }
@@ -56,25 +43,9 @@
   background: #77c;
 }
 
-#pieces td:hover,
-#actions td:hover {
-  background: #ccc;
-}
-
 #board td.selected,
-#board td.selected:hover,
-#pieces td.selected,
-#pieces td.selected:hover {
+#board td.selected:hover {
   background: #fd3;
-}
-
-#actions td {
-  height: 60px;
-  font-weight: bold;
-  text-align: center;
-  padding-left: 1em;
-  padding-right: 1em;
-  border: solid 1px #666;
 }
 
 #to-the-side {
