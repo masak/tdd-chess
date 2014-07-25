@@ -48,12 +48,11 @@ var initializePlacementLogic = function() {
     });
 
     var posFromSquare = function(sought) {
-        var pos = {};
+        var pos;
         $('#board tr').each(function(i, row) {
             $(row).find('td').each(function(j, cell) {
                 if (sought === cell) {
-                    pos.i = i;
-                    pos.j = j;
+                    pos = [i, j];
                 }
             });
         });
@@ -65,17 +64,23 @@ var initializePlacementLogic = function() {
             if (event.target === selectedSquare) {
                 return;
             }
-            var pos = posFromSquare(event.target);
-            board[pos.i][pos.j] = $(selectedSquare).html();
+            var toPos = posFromSquare(event.target);
             if (boardSquareSelected) {
-                pos = posFromSquare(selectedSquare);
-                board[pos.i][pos.j] = "";
+                var fromPos = posFromSquare(selectedSquare);
+                board.makeMove(fromPos, toPos);
             }
+            else {
+                board[toPos[0]][toPos[1]] = $(selectedSquare).html();
+            }
+
             domUpdate(board);
             $(selectedSquare).removeClass('selected');
             selectedSquare = undefined;
         }
         else {
+            if ($(event.target).html() === "") {
+                return;
+            }
             $(selectedSquare).removeClass('selected');
             selectedSquare = event.target;
             $(selectedSquare).addClass('selected');

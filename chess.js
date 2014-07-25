@@ -167,5 +167,10 @@ var board = (function () {
         }
     };
 
+    board.makeMove = function(fromPos, toPos) {
+        board[toPos[0]][toPos[1]] = board[fromPos[0]][fromPos[1]];
+        board[fromPos[0]][fromPos[1]] = "";
+    };
+
     return board;
 })();
