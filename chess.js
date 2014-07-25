@@ -1,5 +1,43 @@
 'use strict';
 
+var Color = {
+    WHITE: "white"
+};
+
+var Type = {
+    ROOK: {
+        name: "rook",
+        jumpIsLegal: function(fromPos, toPos) {
+            var sameRank = fromPos[0] == toPos[0];
+            var sameFile = fromPos[1] == toPos[1];
+            return sameRank != sameFile;
+        }
+    }
+};
+
+var Piece = function(color, type) {
+    this.color = color;
+    this.type = type;
+
+    this.name = color + " " + type.name;
+};
+
+Piece.prototype.jumpIsLegal = function(fromPos, toPos) {
+    return this.type.jumpIsLegal(fromPos, toPos);
+};
+
+Piece.WHITE_ROOK = new Piece(Color.WHITE, Type.ROOK);
+
+var Move = function(board, fromPos, toPos) {
+    this.fromPos = fromPos;
+    this.toPos = toPos;
+    this.piece = board[ fromPos[0] ][ fromPos[1] ];
+};
+
+Move.prototype.isLegal = function() {
+    return this.piece.jumpIsLegal(this.fromPos, this.toPos);
+};
+
 var board = (function () {
     var piece = function(i, j) {
         return '&#' + (9812 + 6 * i + j) + ';';

@@ -1,3 +1,40 @@
-QUnit.test( "hello test", function( assert ) {
-    assert.ok( 1 == "1", "Passed!" );
+'use strict';
+
+var checkMoves = function(assert, conf) {
+    board.empty();
+    var pos = conf.initPos,
+        i = pos[0],
+        j = pos[1],
+        piece = conf.piece;
+    board[i][j] = conf.piece;
+
+    for (var i in conf.legal) {
+        var newPos = conf.legal[i];
+        var move = new Move(board, pos, newPos);
+        assert.ok(move.isLegal(), "Legal: moving a " + piece.name + " from " + pos + " to " + newPos);
+    }
+
+    for (var i in conf.illegal) {
+        var newPos = conf.illegal[i];
+        var move = new Move(board, pos, newPos);
+        assert.ok(!move.isLegal(), "Illegal: moving a " + piece.name + " from " + pos + " to " + newPos);
+    }
+
+    board.empty();
+};
+
+QUnit.test( "rook moves", function( assert ) {
+    checkMoves(assert, {
+        piece: Piece.WHITE_ROOK,
+        initPos: [5, 4],
+        legal: [
+            [7, 4],
+            [0, 4],
+            [5, 2],
+            [5, 6]
+        ],
+        illegal: [
+            [6, 5]
+        ]
+    });
 });

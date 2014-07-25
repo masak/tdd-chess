@@ -36,12 +36,15 @@ var domUpdate = function(board) {
     });
 };
 
-var initializeSelectionLogic = function() {
+var initializePlacementLogic = function() {
     var selectedSquare;
+    var boardSquareSelected;
+
     $('#pieces').on('click', 'td', function(event) {
         $(selectedSquare).removeClass('selected');
         selectedSquare = event.target;
         $(selectedSquare).addClass('selected');
+        boardSquareSelected = false;
     });
 
     var posFromSquare = function(sought) {
@@ -59,11 +62,24 @@ var initializeSelectionLogic = function() {
 
     $('#board').on('click', 'td', function(event) {
         if (selectedSquare) {
+            if (event.target === selectedSquare) {
+                return;
+            }
             var pos = posFromSquare(event.target);
             board[pos.i][pos.j] = $(selectedSquare).html();
+            if (boardSquareSelected) {
+                pos = posFromSquare(selectedSquare);
+                board[pos.i][pos.j] = "";
+            }
             domUpdate(board);
             $(selectedSquare).removeClass('selected');
             selectedSquare = undefined;
+        }
+        else {
+            $(selectedSquare).removeClass('selected');
+            selectedSquare = event.target;
+            $(selectedSquare).addClass('selected');
+            boardSquareSelected = true;
         }
     });
 };
