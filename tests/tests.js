@@ -134,27 +134,6 @@ QUnit.test( "pawn moves", function( assert ) {
         piece: Piece.WHITE_PAWN,
         initPos: [5, 4],
         legal: [
-            [6, 4],
-        ],
-        illegal: [
-            [7, 4],
-            [0, 4],
-            [5, 2],
-            [5, 6],
-            [3, 6],
-            [2, 1],
-            [3, 3],
-            [4, 2],
-            [7, 5],
-            [0, 0],
-            [4, 4]
-        ]
-    });
-
-    checkMoves(assert, {
-        piece: Piece.BLACK_PAWN,
-        initPos: [5, 4],
-        legal: [
             [4, 4],
         ],
         illegal: [
@@ -171,16 +150,37 @@ QUnit.test( "pawn moves", function( assert ) {
             [6, 4]
         ]
     });
+
+    checkMoves(assert, {
+        piece: Piece.BLACK_PAWN,
+        initPos: [5, 4],
+        legal: [
+            [6, 4],
+        ],
+        illegal: [
+            [7, 4],
+            [0, 4],
+            [5, 2],
+            [5, 6],
+            [3, 6],
+            [2, 1],
+            [3, 3],
+            [4, 2],
+            [7, 5],
+            [0, 0],
+            [4, 4]
+        ]
+    });
 });
 
 QUnit.test( "turn alternates between players", function( assert ) {
     testState.chess();
 
-    var move = new Move(testState, [6, 4], [5, 4]);
+    var move = new Move(testState, [1, 4], [2, 4]);
     assert.ok(!move.isLegal(), "black cannot start");
 
-    new Move(testState, [1, 4], [2, 4]).make();
-    move = new Move(testState, [6, 4], [5, 4]);
+    new Move(testState, [6, 4], [5, 4]).make();
+    move = new Move(testState, [1, 4], [2, 4]);
     assert.ok(move.isLegal(), "black can move after white made a move");
 });
 
@@ -202,19 +202,19 @@ QUnit.test( "moving and capturing pawns", function( assert ) {
     testState.reset();
 
     testState.board[3][4] = Piece.WHITE_PAWN;
-    testState.board[4][4] = Piece.BLACK_QUEEN;
+    testState.board[2][4] = Piece.BLACK_QUEEN;
 
-    var forwardToCapture = new Move(testState, [3, 4], [4, 4]);
+    var forwardToCapture = new Move(testState, [3, 4], [2, 4]);
     assert.ok(!forwardToCapture.isLegal(), "can't capture by moving forward");
-    var diagonalToMove = new Move(testState, [3, 4], [4, 5]);
+    var diagonalToMove = new Move(testState, [3, 4], [2, 5]);
     assert.ok(!diagonalToMove.isLegal(), "can't do a normal move diagonally");
 
-    testState.board[4][4] = EMPTY;
-    testState.board[4][5] = Piece.BLACK_QUEEN;
+    testState.board[2][4] = EMPTY;
+    testState.board[2][5] = Piece.BLACK_QUEEN;
 
-    var forwardToMove = new Move(testState, [3, 4], [4, 4]);
+    var forwardToMove = new Move(testState, [3, 4], [2, 4]);
     assert.ok(forwardToMove.isLegal(), "can do a normal move forward");
-    var diagonalToCapture = new Move(testState, [3, 4], [4, 5]);
+    var diagonalToCapture = new Move(testState, [3, 4], [2, 5]);
     assert.ok(diagonalToCapture.isLegal(), "can capture by moving diagonally");
 });
 
