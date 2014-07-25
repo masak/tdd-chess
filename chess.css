@@ -2,6 +2,7 @@
 #pieces,
 #actions {
   border-collapse: collapse;
+  cursor: default;
 }
 
 #board td,
