@@ -7,19 +7,14 @@ var Color = {
 var Type = {
     ROOK: {
         name: "rook",
-        jumpIsLegal: function(fromPos, toPos) {
-            var sameRank = fromPos[0] == toPos[0];
-            var sameFile = fromPos[1] == toPos[1];
-            return sameRank != sameFile;
+        jumpIsLegal: function(move) {
+            return move.isHorizontal() || move.isVertical();
         }
     },
     KNIGHT: {
         name: "knight",
-        jumpIsLegal: function(fromPos, toPos) {
-            var rankDist = Math.abs(fromPos[0] - toPos[0]),
-                fileDist = Math.abs(fromPos[1] - toPos[1]);
-            return rankDist == 1 && fileDist == 2 ||
-                    rankDist == 2 && fileDist == 1;
+        jumpIsLegal: function(move) {
+            return move.isKnightMove();
         }
     }
 };
@@ -44,8 +39,31 @@ var Move = function(board, fromPos, toPos) {
     this.piece = board[ fromPos[0] ][ fromPos[1] ];
 };
 
-Move.prototype.isLegal = function() {
-    return this.piece.jumpIsLegal(this.fromPos, this.toPos);
+Move.prototype = {
+    isLegal: function() {
+        return this.piece.jumpIsLegal(this);
+    },
+
+    rankDist: function() {
+        return Math.abs(this.fromPos[0] - this.toPos[0]);
+    },
+
+    fileDist: function() {
+        return Math.abs(this.fromPos[1] - this.toPos[1]);
+    },
+
+    isHorizontal: function() {
+        return this.rankDist() === 0;
+    },
+
+    isVertical: function() {
+        return this.fileDist() === 0;
+    },
+
+    isKnightMove: function() {
+        return this.rankDist() === 1 && this.fileDist() === 2 ||
+               this.rankDist() === 2 && this.fileDist() === 1;
+    }
 };
 
 var board = (function () {
