@@ -21,7 +21,6 @@ var initializePieces = function() {
         var row = $('<tr></tr>');
         var p = initializePieces.pieces;
         for (var j = 0; j < 6; j++) {
-            var symbol = '&#' + (9812 + 6 * i + j) + ';';
             var square = $('<td></td>').html(p[i][j].symbol());
             row.append(square);
         }
