@@ -218,8 +218,46 @@ QUnit.test( "moving and capturing pawns", function( assert ) {
     assert.ok(diagonalToCapture.isLegal(), "can capture by moving diagonally");
 });
 
-// pieces cannot go through things
-// ...but the knight can
+QUnit.test( "pieces cannot go through things", function( assert ) {
+    testState.reset();
+
+    testState.board[1][1] = Piece.WHITE_PAWN;
+    testState.board[1][2] = Piece.WHITE_ROOK;
+    testState.board[1][3] = Piece.WHITE_BISHOP;
+    testState.board[1][4] = Piece.WHITE_QUEEN;
+
+    testState.board[2][1] = Piece.BLACK_QUEEN;
+    testState.board[6][2] = Piece.BLACK_QUEEN;
+    testState.board[2][3] = Piece.BLACK_QUEEN;
+    testState.board[3][5] = Piece.BLACK_QUEEN;
+    testState.board[2][5] = Piece.BLACK_QUEEN;
+
+    var pawnThroughPiece = new Move(testState, [1, 1], [3, 1]);
+    assert.ok(!pawnThroughPiece.isLegal(), "pawn can't go through a piece");
+
+    var rookThroughPiece = new Move(testState, [1, 2], [7, 2]);
+    assert.ok(!rookThroughPiece.isLegal(), "rook can't go through a piece");
+
+    var bishopThroughPiece = new Move(testState, [1, 3], [5, 7]);
+    assert.ok(!bishopThroughPiece.isLegal(), "bishop can't go through a piece");
+
+    var queenThoughPiece = new Move(testState, [1, 4], [3, 2]);
+    assert.ok(!queenThoughPiece.isLegal(), "queen can't go though a piece");
+});
+
+QUnit.test( "the knight can go through things", function( assert ) {
+    testState.reset();
+
+    testState.board[1][1] = Piece.WHITE_KNIGHT;
+
+    testState.board[2][1] = Piece.BLACK_PAWN;
+    testState.board[1][2] = Piece.BLACK_KNIGHT;
+    testState.board[2][2] = Piece.BLACK_BISHOP;
+    testState.board[1][3] = Piece.BLACK_QUEEN;
+
+    var knightOverPieces = new Move(testState, [1, 1], [2, 3]);
+    assert.ok(knightOverPieces.isLegal(), "knight can jump over pieces");
+});
 
 // castling
 

@@ -5,42 +5,76 @@ var Color = {
     BLACK: "black"
 };
 
+var lineOfSight = function(move) {
+    var positions = [];
+    var sgn = function(value) {
+        return value > 0 ? +1 : value < 0 ? -1 : 0;
+    };
+    var dr = sgn(move.toPos[0] - move.fromPos[0]);
+    var df = sgn(move.toPos[1] - move.fromPos[1]);
+    var reached = function(value, limit, delta) {
+        return delta > 0 ? value >= limit :
+               delta < 0 ? value <= limit :
+               false;
+    };
+
+    var rank = move.fromPos[0] + dr;
+    var file = move.fromPos[1] + df;
+    while (!reached(rank, move.toPos[0], dr) &&
+           !reached(file, move.toPos[1], df)) {
+        positions.push([rank, file]);
+        rank += dr;
+        file += df;
+    }
+    return positions;
+};
+
+var noPositions = function(move) {
+    return [];
+};
+
 var Type = {
     ROOK: {
         name: "rook",
         jumpIsLegal: function(move) {
             return move.isHorizontal() || move.isVertical();
-        }
+        },
+        positionsBetween: lineOfSight
     },
     KNIGHT: {
         name: "knight",
         jumpIsLegal: function(move) {
             return move.isKnightMove();
-        }
+        },
+        positionsBetween: noPositions
     },
     BISHOP: {
         name: "bishop",
         jumpIsLegal: function(move) {
             return move.isDiagonal();
-        }
+        },
+        positionsBetween: lineOfSight
     },
     QUEEN: {
         name: "queen",
         jumpIsLegal: function(move) {
             return Type.ROOK.jumpIsLegal(move) || Type.BISHOP.jumpIsLegal(move);
-        }
+        },
+        positionsBetween: lineOfSight
     },
     KING: {
         name: "king",
         jumpIsLegal: function(move) {
             return move.isOneStep();
-        }
+        },
+        positionsBetween: noPositions
     },
     PAWN: {
         name: "pawn",
         jumpIsLegal: function(move, color) {
             return move.isForwards(color) && move.isOneStep();
-        }
+        },
+        positionsBetween: lineOfSight
     }
 };
 
@@ -53,6 +87,10 @@ var Piece = function(color, type) {
 
 Piece.prototype.jumpIsLegal = function(move) {
     return this.type.jumpIsLegal(move, this.color);
+};
+
+Piece.prototype.positionsBetween = function(move) {
+    return this.type.positionsBetween(move);
 };
 
 Piece.prototype.symbol = function(type) {
@@ -78,6 +116,7 @@ var EMPTY = {
     color: undefined,
     type: { name: "empty square" },
     jumpIsLegal: function() { return false },
+    positionsBetween: function() { return [] },
     symbol: function() { return "" }
 };
 
@@ -87,6 +126,9 @@ var Move = function(gameState, fromPos, toPos) {
     this.piece = gameState.board[ fromPos[0] ][ fromPos[1] ];
     this.targetSquare = gameState.board[ toPos[0] ][ toPos[1] ];
     this.playerOnTurn = gameState.playerOnTurn;
+    this.squaresBetween = this.piece.positionsBetween(this).map(function(pos) {
+        return gameState.board[ pos[0] ][ pos[1] ];
+    });
     this.make = function() {
         gameState.makeMove(this);
     };
@@ -105,7 +147,13 @@ Move.prototype = {
                 return false;
             }
         }
-        return this.piece.jumpIsLegal(this);
+        if (!this.piece.jumpIsLegal(this)) {
+            return false;
+        }
+        if (this.squaresBetween.some(function(sq) { return sq !== EMPTY })) {
+            return false;
+        }
+        return true;
     },
 
     rankDist: function() {
