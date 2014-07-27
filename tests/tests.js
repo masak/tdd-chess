@@ -259,7 +259,29 @@ QUnit.test( "the knight can go through things", function( assert ) {
     assert.ok(knightOverPieces.isLegal(), "knight can jump over pieces");
 });
 
-// castling
+QUnit.test( "castling is legal", function( assert ) {
+    testState.chess();
+    var moves = [
+        [[6, 4], [5, 4]],   // pawn opens for bishop
+        [[1, 0], [2, 0]],
+        [[7, 5], [6, 4]],   // bishop out of the way
+        [[2, 0], [3, 0]],
+        [[7, 6], [5, 5]],   // knight out of the way
+        [[3, 0], [4, 0]]
+    ];
+    for (var i in moves) {
+        var move = moves[i];
+        var fromPos = move[0],
+            toPos = move[1];
+        new Move(testState, fromPos, toPos).make();
+    }
+
+    var move = new Move(testState, [7, 4], [7, 6]);
+    assert.ok(move.isLegal(), "white king can castle here");
+    move.make();
+    assert.ok(testState.board[7][7] === EMPTY, "rook also moved...");
+    assert.ok(testState.board[7][5] === Piece.WHITE_ROOK, "...to here");
+});
 
 // pawn double step
 // en passant

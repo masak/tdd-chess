@@ -65,7 +65,7 @@ var Type = {
     KING: {
         name: "king",
         jumpIsLegal: function(move) {
-            return move.isOneStep();
+            return move.isOneOrTwoSteps();
         },
         positionsBetween: noPositions
     },
@@ -129,8 +129,19 @@ var Move = function(gameState, fromPos, toPos) {
     this.squaresBetween = this.piece.positionsBetween(this).map(function(pos) {
         return gameState.board[ pos[0] ][ pos[1] ];
     });
+    var moveRookToo = function() {
+        var rank = fromPos[0];
+        var fromFile = toPos[1] > fromPos[1] ? 7 : 0;
+        var toFile = toPos[1] > fromPos[1] ? 5 : 3;
+
+        // reaching directly into the board because we don't want to change the player on turn
+        gameState.board.makeMove(new Move(gameState, [rank, fromFile], [rank, toFile]));
+    };
     this.make = function() {
         gameState.makeMove(this);
+        if (this.isCastling()) {
+            moveRookToo();
+        }
     };
 };
 
@@ -150,6 +161,8 @@ Move.prototype = {
         var takingMove = function() { return this.targetSquare !== EMPTY; }.bind(this);
         var pieceIsPawn = function() { return this.piece.type === Type.PAWN; }.bind(this);
         var pawnRestrictionHolds = function() { return moveIsInSameFile() !== takingMove(); }.bind(this);
+        var pieceIsKing = function() { return this.piece.type === Type.KING; }.bind(this);
+        var kingRestrictionHolds = function() { return this.isOneStep() || this.isCastling(); }.bind(this);
         var pieceJumpIsLegal = function() { return this.piece.jumpIsLegal(this); }.bind(this);
         var squaresBetweenAreEmpty = function() {
             var isEmpty = function(sq) { return sq === EMPTY };
@@ -159,6 +172,7 @@ Move.prototype = {
         return pieceBelongsToPlayer()                             &&
             targetSquareDoesNotHaveFriendlyPiece()                &&
             givenThat(pieceIsPawn()).then(pawnRestrictionHolds()) &&
+            givenThat(pieceIsKing()).then(kingRestrictionHolds()) &&
             pieceJumpIsLegal()                                    &&
             squaresBetweenAreEmpty();
     },
@@ -192,9 +206,23 @@ Move.prototype = {
         return this.rankDist() <= 1 && this.fileDist() <= 1;
     },
 
+    isOneOrTwoSteps: function() {
+        return this.rankDist() <= 2 && this.fileDist() <= 2;
+    },
+
     isForwards: function(color) {
         return color === "white" && this.toPos[0] < this.fromPos[0] ||
                color === "black" && this.toPos[0] > this.fromPos[0];
+    },
+
+    isCastling: function() {
+        // TODO: also need the following conditions:
+        //     2. neither the king nor the chosen rook have previously moved
+        //     3. there are no pieces between the king and the chosen rook
+        //     4. the king is not currently in check
+        //     5. the king does not pass through a square that is attacked by an enemy piece
+        return this.piece.type == Type.KING &&
+            (this.fromPos[0] === 0 || this.fromPos[0] === 7);
     }
 };
 
