@@ -134,26 +134,33 @@ var Move = function(gameState, fromPos, toPos) {
     };
 };
 
+var givenThat = function(premise) {
+    return {
+        then: function(consequence) {
+            return !premise || consequence;
+        }
+    };
+};
+
 Move.prototype = {
     isLegal: function() {
-        if (this.piece.color !== this.playerOnTurn) {
-            return false;
-        }
-        if (this.targetSquare.color === this.piece.color) {
-            return false;
-        }
-        if (this.piece.type === Type.PAWN) {
-            if ((this.fileDist() === 0) !== (this.targetSquare === EMPTY)) {
-                return false;
-            }
-        }
-        if (!this.piece.jumpIsLegal(this)) {
-            return false;
-        }
-        if (this.squaresBetween.some(function(sq) { return sq !== EMPTY })) {
-            return false;
-        }
-        return true;
+        var pieceBelongsToPlayer = function() { return this.piece.color === this.playerOnTurn; }.bind(this);
+        var targetSquareDoesNotHaveFriendlyPiece = function() { return this.targetSquare.color !== this.piece.color; }.bind(this);
+        var moveIsInSameFile = function() { return this.fileDist() === 0; }.bind(this);
+        var takingMove = function() { return this.targetSquare !== EMPTY; }.bind(this);
+        var pieceIsPawn = function() { return this.piece.type === Type.PAWN; }.bind(this);
+        var pawnRestrictionHolds = function() { return moveIsInSameFile() !== takingMove(); }.bind(this);
+        var pieceJumpIsLegal = function() { return this.piece.jumpIsLegal(this); }.bind(this);
+        var squaresBetweenAreEmpty = function() {
+            var isEmpty = function(sq) { return sq === EMPTY };
+            return this.squaresBetween.every(isEmpty);
+        }.bind(this);
+
+        return pieceBelongsToPlayer()                             &&
+            targetSquareDoesNotHaveFriendlyPiece()                &&
+            givenThat(pieceIsPawn()).then(pawnRestrictionHolds()) &&
+            pieceJumpIsLegal()                                    &&
+            squaresBetweenAreEmpty();
     },
 
     rankDist: function() {
