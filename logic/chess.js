@@ -231,7 +231,7 @@ var gameState = {
             var pieces = {
                 0: [br, bn, bb, bq, bk, bb, bn, br],
                 1: [bp, bp, bp, bp, bp, bp, bp, bp],
-                6: [wr, wp, wp, wp, wp, wp, wp, wp],
+                6: [wp, wp, wp, wp, wp, wp, wp, wp],
                 7: [wr, wn, wb, wq, wk, wb, wn, wr]
             };
 
