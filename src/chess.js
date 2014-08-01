@@ -175,21 +175,39 @@ var givenThat = function givenThat(premise) {
 
 Move.prototype = {
     isLegal: function isLegal() {
-        var pieceBelongsToPlayer = function pieceBelongsToPlayer() { return this.piece.color === this.playerOnTurn; }.bind(this);
-        var targetSquareDoesNotHaveFriendlyPiece = function targetSquareDoesNotHaveFriendlyPiece() { return this.targetSquare.color !== this.piece.color; }.bind(this);
-        var oneRankOneFile = function moveIsInSameFile() { return this.fileDist() === 1 && this.rankDist() === 1; }.bind(this);
-        var takingMove = function takingMove() { return this.targetSquare !== EMPTY; }.bind(this);
-        var pieceIsPawn = function pieceIsPawn() { return this.piece.type === Type.PAWN; }.bind(this);
-        var pawnRestrictionHolds = function pawnRestrictionHolds() { return (oneRankOneFile() === takingMove()) && (this.rankDist() === 1 || this.fromPos[0] === 1 || this.fromPos[0] === 6); }.bind(this);
-        var pieceIsKing = function pieceIsKing() { return this.piece.type === Type.KING; }.bind(this);
-        var kingRestrictionHolds = function kingRestrictionHolds() { return this.isOneStep() || this.isCastling(); }.bind(this);
-        var pieceJumpIsLegal = function pieceJumpIsLegal() { return this.piece.jumpIsLegal(this); }.bind(this);
+        var pieceBelongsToPlayer = function pieceBelongsToPlayer() {
+            return this.piece.color === this.playerOnTurn;
+        }.bind(this);
+        var notTakingFriendly = function notTakingFriendly() {
+            return this.targetSquare.color !== this.piece.color;
+        }.bind(this);
+        var oneRankOneFile = function moveIsInSameFile() {
+            return this.fileDist() === 1 && this.rankDist() === 1;
+        }.bind(this);
+        var takingMove = function takingMove() {
+            return this.targetSquare !== EMPTY;
+        }.bind(this);
+        var pieceIsPawn = function pieceIsPawn() {
+            return this.piece.type === Type.PAWN;
+        }.bind(this);
+        var pawnRestrictionHolds = function pawnRestrictionHolds() {
+            return (oneRankOneFile() === takingMove()) &&
+                    (this.rankDist() === 1 || this.fromPos[0] === 1 || this.fromPos[0] === 6);
+        }.bind(this);
+        var pieceIsKing = function pieceIsKing() {
+            return this.piece.type === Type.KING;
+        }.bind(this);
+        var kingRestrictionHolds = function kingRestrictionHolds() {
+            return this.isOneStep() || this.isCastling();
+        }.bind(this);
 
-        return pieceBelongsToPlayer()                             &&
-            targetSquareDoesNotHaveFriendlyPiece()                &&
-            givenThat(pieceIsPawn()).then(pawnRestrictionHolds()) &&
-            givenThat(pieceIsKing()).then(kingRestrictionHolds()) &&
-            pieceJumpIsLegal()                                    &&
+        return pieceBelongsToPlayer()         &&
+            notTakingFriendly()               &&
+            givenThat(pieceIsPawn())
+                .then(pawnRestrictionHolds()) &&
+            givenThat(pieceIsKing())
+                .then(kingRestrictionHolds()) &&
+            this.piece.jumpIsLegal(this)      &&
             this.squaresBetweenAreEmpty();
     },
 
