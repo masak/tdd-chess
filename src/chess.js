@@ -58,7 +58,8 @@ var Type = {
     QUEEN: {
         name: "queen",
         jumpIsLegal: function jumpIsLegal(move) {
-            return Type.ROOK.jumpIsLegal(move) || Type.BISHOP.jumpIsLegal(move);
+            return Type.ROOK.jumpIsLegal(move) ||
+                Type.BISHOP.jumpIsLegal(move);
         },
         positionsBetween: lineOfSight
     },
@@ -72,7 +73,9 @@ var Type = {
     PAWN: {
         name: "pawn",
         jumpIsLegal: function jumpIsLegal(move, color) {
-            return move.isForwards(color) && move.isOneOrTwoSteps() && move.fileDist() < 2;
+            return move.isForwards(color) &&
+                move.isOneOrTwoSteps() &&
+                move.fileDist() < 2;
         },
         positionsBetween: lineOfSight
     }
@@ -98,7 +101,8 @@ Piece.prototype.positionsBetween = function positionsBetween(move) {
 };
 
 Piece.prototype.symbol = function symbol(type) {
-    var i = ['king', 'queen', 'rook', 'bishop', 'knight', 'pawn'].indexOf(this.type.name);
+    var names = ['king', 'queen', 'rook', 'bishop', 'knight', 'pawn'];
+    var i = names.indexOf(this.type.name);
     return '&#' + (9818 + i) + ';';
 };
 
@@ -130,17 +134,22 @@ var Move = function Move(gameState, fromPos, toPos) {
     this.piece = gameState.board[ fromPos[0] ][ fromPos[1] ];
     this.targetSquare = gameState.board[ toPos[0] ][ toPos[1] ];
     this.playerOnTurn = gameState.playerOnTurn;
-    this.kingAlreadyMoved = gameState.piecesMoved[pieceName(this.playerOnTurn, Type.KING)];
-    this.squaresBetween = this.piece.positionsBetween(this).map(function squareFromPos(pos) {
+    var playersKing = pieceName(this.playerOnTurn, Type.KING);
+    this.kingAlreadyMoved = gameState.piecesMoved[playersKing];
+    var pos2sq = function pos2sq(pos) {
         return gameState.board[ pos[0] ][ pos[1] ];
-    });
+    };
+    this.squaresBetween = this.piece.positionsBetween(this).map(pos2sq);
     this.rookIsThere = function rookIsThere() {
-        var square = gameState.board[ fromPos[0] ][ toPos[1] > fromPos[1] ? 7 : 0 ];
+        var rank = fromPos[0];
+        var file = toPos[1] > fromPos[1] ? 7 : 0;
+        var square = gameState.board[rank][file];
         return square.type === Type.ROOK && square.color === this.piece.color;
     };
     this.rookAlreadyMoved = function rookAlreadyMoved() {
         var kingsOrQueens = toPos[1] > fromPos[1] ? "king's" : "queen's";
-        return gameState.piecesMoved[kingsOrQueens + " " + pieceName(this.playerOnTurn, Type.ROOK)];
+        var playersRook = pieceName(this.playerOnTurn, Type.ROOK);
+        return gameState.piecesMoved[kingsOrQueens + " " + playersRook];
     };
     this.noPiecesInTheWayForRook = function noPiecesInTheWayForRook() {
         var rookFromPos = function rookFromPos() {
@@ -189,7 +198,8 @@ Move.prototype = {
         }.bind(this);
         var pawnRestrictionHolds = function pawnRestrictionHolds() {
             return (oneRankOneFile() === takingMove()) &&
-                    (this.rankDist() === 1 || this.fromPos[0] === 1 || this.fromPos[0] === 6);
+                    (this.rankDist() === 1 || this.fromPos[0] === 1 ||
+                     this.fromPos[0] === 6);
         }.bind(this);
         var pieceIsKing = function pieceIsKing() {
             return this.piece.type === Type.KING;
@@ -314,8 +324,12 @@ var gameState = {
         };
 
         board.makeMove = function makeMove(move) {
-            this[move.toPos[0]][move.toPos[1]] = this[move.fromPos[0]][move.fromPos[1]];
-            this[move.fromPos[0]][move.fromPos[1]] = EMPTY;
+            var fromRank = move.fromPos[0],
+                fromFile = move.fromPos[1],
+                toRank   = move.toPos[0],
+                toFile   = move.toPos[1];
+            this[toRank][toFile] = this[fromRank][fromFile];
+            this[fromRank][fromFile] = EMPTY;
         };
 
         board.clone = function clone() {
@@ -386,13 +400,16 @@ var gameState = {
             var file = move.toPos[1] > move.fromPos[1] ? 5 : 3;
             return [rank, file];
         };
+        var oppositePlayer = function oppositePlayer(color) {
+            return color === Color.WHITE ? Color.BLACK : Color.WHITE;
+        };
 
         markPieceMoved(move.fromPos);
         if (move.isCastling()) {
             this.board.makeMove(new Move(gameState, rookFromPos(), rookToPos()));
         }
         this.board.makeMove(move);
-        this.playerOnTurn = this.playerOnTurn === Color.WHITE ? Color.BLACK : Color.WHITE;
+        this.playerOnTurn = oppositePlayer(this.playerOnTurn);
     },
 
     clone: function clone() {
