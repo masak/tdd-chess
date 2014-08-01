@@ -134,10 +134,6 @@ var Move = function Move(gameState, fromPos, toPos) {
     this.squaresBetween = this.piece.positionsBetween(this).map(function squareFromPos(pos) {
         return gameState.board[ pos[0] ][ pos[1] ];
     });
-    this.squaresBetweenAreEmpty = function squaresBetweenAreEmpty() {
-        var isEmpty = function isEmpty(sq) { return sq === EMPTY };
-        return this.squaresBetween.every(isEmpty);
-    };
     this.rookIsThere = function rookIsThere() {
         var square = gameState.board[ fromPos[0] ][ toPos[1] > fromPos[1] ? 7 : 0 ];
         return square.type === Type.ROOK && square.color === this.piece.color;
@@ -256,6 +252,11 @@ Move.prototype = {
                !this.rookAlreadyMoved() &&
                this.noPiecesInTheWayForRook() &&
             (this.fromPos[0] === 0 || this.fromPos[0] === 7);
+    },
+
+    squaresBetweenAreEmpty: function squaresBetweenAreEmpty() {
+        var isEmpty = function isEmpty(sq) { return sq === EMPTY };
+        return this.squaresBetween.every(isEmpty);
     }
 };
 
