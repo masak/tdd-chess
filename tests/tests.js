@@ -368,7 +368,29 @@ QUnit.test( "castling is only legal if there are no pieces between king and quee
     assert.ok(!move.isLegal(), "white king can not castle because queen's knight is standing in the way");
 });
 
-// pawn double step
+QUnit.test( "a pawn can advance two steps from its original rank", function( assert ) {
+    testState.chess();
+
+    var move = new Move(testState, [6, 4], [4, 4]);
+    assert.ok(move.isLegal(), "the pawn can advance two steps");
+
+    new Move(testState, [6, 4], [5, 4]).make();
+    move = new Move(testState, [5, 4], [3, 4]);
+    assert.ok(!move.isLegal(), "...but only from its original rank");
+});
+
+QUnit.test( "a pawn may not advance two steps and capture at the same time", function( assert ) {
+    initializeWithMoves([
+        [[6, 7], [4, 7]],
+        [[1, 3], [3, 3]],
+        [[4, 7], [3, 7]],
+        [[3, 3], [4, 3]],
+    ]);
+
+    var move = new Move(testState, [6, 4], [4, 3]);
+    assert.ok(!move.isLegal(), "pawn cannot advance two steps and capture at the same time");
+});
+
 // en passant
 // promotion
 
