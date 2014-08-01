@@ -154,7 +154,8 @@ var Move = function Move(gameState, fromPos, toPos) {
             return [rank, file];
         }.bind(this);
 
-        return new Move(gameState, rookFromPos(), rookToPos()).squaresBetweenAreEmpty();
+        var rookMove = new Move(gameState, rookFromPos(), rookToPos());
+        return rookMove.squaresBetweenAreEmpty();
     };
     this.make = function make() {
         gameState.makeMove(this);
