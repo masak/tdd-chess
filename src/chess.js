@@ -311,8 +311,6 @@ var gameState = {
         };
 
         board.chess = function chess() {
-            this.empty();
-
             var br = Piece.BLACK_ROOK,
                 bn = Piece.BLACK_KNIGHT,
                 bb = Piece.BLACK_BISHOP,
@@ -324,17 +322,22 @@ var gameState = {
                 wb = Piece.WHITE_BISHOP,
                 wq = Piece.WHITE_QUEEN,
                 wk = Piece.WHITE_KING,
-                wp = Piece.WHITE_PAWN;
+                wp = Piece.WHITE_PAWN,
+                __ = EMPTY;
 
-            var pieces = {
-                0: [br, bn, bb, bq, bk, bb, bn, br],
-                1: [bp, bp, bp, bp, bp, bp, bp, bp],
-                6: [wp, wp, wp, wp, wp, wp, wp, wp],
-                7: [wr, wn, wb, wq, wk, wb, wn, wr]
-            };
+            var chessLayout = [
+                [br, bn, bb, bq, bk, bb, bn, br],
+                [bp, bp, bp, bp, bp, bp, bp, bp],
+                [__, __, __, __, __, __, __, __],
+                [__, __, __, __, __, __, __, __],
+                [__, __, __, __, __, __, __, __],
+                [__, __, __, __, __, __, __, __],
+                [wp, wp, wp, wp, wp, wp, wp, wp],
+                [wr, wn, wb, wq, wk, wb, wn, wr]
+            ];
 
-            for (var row in pieces) {
-                this[row] = pieces[row];
+            for (var row in chessLayout) {
+                this[row] = chessLayout[row];
             }
         };
 
