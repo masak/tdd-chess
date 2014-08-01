@@ -67,7 +67,7 @@ var Type = {
         jumpIsLegal: function(move) {
             return move.isOneOrTwoSteps();
         },
-        positionsBetween: noPositions
+        positionsBetween: lineOfSight
     },
     PAWN: {
         name: "pawn",
@@ -78,11 +78,15 @@ var Type = {
     }
 };
 
+var pieceName = function(color, type) {
+    return color + " " + type.name;
+}
+
 var Piece = function(color, type) {
     this.color = color;
     this.type = type;
 
-    this.name = color + " " + type.name;
+    this.name = pieceName(color, type);
 };
 
 Piece.prototype.jumpIsLegal = function(move) {
@@ -126,22 +130,38 @@ var Move = function(gameState, fromPos, toPos) {
     this.piece = gameState.board[ fromPos[0] ][ fromPos[1] ];
     this.targetSquare = gameState.board[ toPos[0] ][ toPos[1] ];
     this.playerOnTurn = gameState.playerOnTurn;
+    this.kingAlreadyMoved = gameState.piecesMoved[pieceName(this.playerOnTurn, Type.KING)];
     this.squaresBetween = this.piece.positionsBetween(this).map(function(pos) {
         return gameState.board[ pos[0] ][ pos[1] ];
     });
-    var moveRookToo = function() {
-        var rank = fromPos[0];
-        var fromFile = toPos[1] > fromPos[1] ? 7 : 0;
-        var toFile = toPos[1] > fromPos[1] ? 5 : 3;
+    this.squaresBetweenAreEmpty = function() {
+        var isEmpty = function(sq) { return sq === EMPTY };
+        return this.squaresBetween.every(isEmpty);
+    };
+    this.rookIsThere = function() {
+        var square = gameState.board[ fromPos[0] ][ toPos[1] > fromPos[1] ? 7 : 0 ];
+        return square.type === Type.ROOK && square.color === this.piece.color;
+    };
+    this.rookAlreadyMoved = function() {
+        var kingsOrQueens = toPos[1] > fromPos[1] ? "king's" : "queen's";
+        return gameState.piecesMoved[kingsOrQueens + " " + pieceName(this.playerOnTurn, Type.ROOK)];
+    };
+    this.noPiecesInTheWayForRook = function() {
+        var rookFromPos = function() {
+            var rank = this.fromPos[0];
+            var file = this.toPos[1] > this.fromPos[1] ? 7 : 0;
+            return [rank, file];
+        }.bind(this);
+        var rookToPos = function() {
+            var rank = this.fromPos[0];
+            var file = this.toPos[1] > this.fromPos[1] ? 5 : 3;
+            return [rank, file];
+        }.bind(this);
 
-        // reaching directly into the board because we don't want to change the player on turn
-        gameState.board.makeMove(new Move(gameState, [rank, fromFile], [rank, toFile]));
+        return new Move(gameState, rookFromPos(), rookToPos()).squaresBetweenAreEmpty();
     };
     this.make = function() {
         gameState.makeMove(this);
-        if (this.isCastling()) {
-            moveRookToo();
-        }
     };
 };
 
@@ -164,17 +184,13 @@ Move.prototype = {
         var pieceIsKing = function() { return this.piece.type === Type.KING; }.bind(this);
         var kingRestrictionHolds = function() { return this.isOneStep() || this.isCastling(); }.bind(this);
         var pieceJumpIsLegal = function() { return this.piece.jumpIsLegal(this); }.bind(this);
-        var squaresBetweenAreEmpty = function() {
-            var isEmpty = function(sq) { return sq === EMPTY };
-            return this.squaresBetween.every(isEmpty);
-        }.bind(this);
 
         return pieceBelongsToPlayer()                             &&
             targetSquareDoesNotHaveFriendlyPiece()                &&
             givenThat(pieceIsPawn()).then(pawnRestrictionHolds()) &&
             givenThat(pieceIsKing()).then(kingRestrictionHolds()) &&
             pieceJumpIsLegal()                                    &&
-            squaresBetweenAreEmpty();
+            this.squaresBetweenAreEmpty();
     },
 
     rankDist: function() {
@@ -216,18 +232,20 @@ Move.prototype = {
     },
 
     isCastling: function() {
-        // TODO: also need the following conditions:
-        //     2. neither the king nor the chosen rook have previously moved
-        //     3. there are no pieces between the king and the chosen rook
-        //     4. the king is not currently in check
-        //     5. the king does not pass through a square that is attacked by an enemy piece
         return this.piece.type == Type.KING &&
+               this.rookIsThere() &&
+               !this.kingAlreadyMoved &&
+               !this.rookAlreadyMoved() &&
+               this.noPiecesInTheWayForRook() &&
             (this.fromPos[0] === 0 || this.fromPos[0] === 7);
     }
 };
 
 var gameState = {
     playerOnTurn: Color.WHITE,
+
+    piecesMoved: {
+    },
 
     board: (function () {
         var board = [];
@@ -307,15 +325,52 @@ var gameState = {
 
     reset: function() {
         this.playerOnTurn = Color.WHITE;
+        this.piecesMoved = {};
         this.board.empty();
     },
 
     chess: function() {
         this.playerOnTurn = Color.WHITE;
+        this.piecesMoved = {};
         this.board.chess();
     },
 
     makeMove: function(move) {
+        var markPieceMoved = function(pos) {
+            var rank = pos[0];
+            var file = pos[1];
+            var piece = this.board[rank][file];
+            if (piece.type === Type.KING) {
+                this.piecesMoved[piece.name] = true;
+            }
+            else if (piece.type === Type.ROOK) {
+                if (rank != 0 && rank != 7) {
+                    return;
+                }
+                var kingsOrQueens = file == 0 ? "queen's" :
+                                    file == 7 ? "king's"  :
+                                                undefined;
+                if (!kingsOrQueens) {
+                    return;
+                }
+                this.piecesMoved[kingsOrQueens + " " + piece.name] = true;
+            }
+        }.bind(this);
+        var rookFromPos = function() {
+            var rank = move.fromPos[0];
+            var file = move.toPos[1] > move.fromPos[1] ? 7 : 0;
+            return [rank, file];
+        };
+        var rookToPos = function() {
+            var rank = move.fromPos[0];
+            var file = move.toPos[1] > move.fromPos[1] ? 5 : 3;
+            return [rank, file];
+        };
+
+        markPieceMoved(move.fromPos);
+        if (move.isCastling()) {
+            this.board.makeMove(new Move(gameState, rookFromPos(), rookToPos()));
+        }
         this.board.makeMove(move);
         this.playerOnTurn = this.playerOnTurn === Color.WHITE ? Color.BLACK : Color.WHITE;
     },
@@ -329,6 +384,12 @@ var gameState = {
             }
         }
         newState.board = this.board.clone();
+        newState.piecesMoved = {};
+        for (var prop in this.piecesMoved) {
+            if (this.piecesMoved.hasOwnProperty(prop)) {
+                newState.piecesMoved[prop] = this.piecesMoved[prop];
+            }
+        }
 
         return newState;
     }
