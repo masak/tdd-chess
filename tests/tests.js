@@ -114,7 +114,7 @@ QUnit.test( "king moves", function( assert ) {
             [5, 3],
             [5, 5],
             [4, 5],
-            [6, 5],
+            [6, 5]
         ],
         illegal: [
             [7, 4],
@@ -136,7 +136,7 @@ QUnit.test( "pawn moves", function( assert ) {
         piece: Piece.WHITE_PAWN,
         initPos: [5, 4],
         legal: [
-            [4, 4],
+            [4, 4]
         ],
         illegal: [
             [7, 4],
@@ -157,7 +157,7 @@ QUnit.test( "pawn moves", function( assert ) {
         piece: Piece.BLACK_PAWN,
         initPos: [5, 4],
         legal: [
-            [6, 4],
+            [6, 4]
         ],
         illegal: [
             [7, 4],
@@ -370,7 +370,7 @@ QUnit.test( "castling is only legal if there are no pieces between king " +
         [[6, 4], [5, 4]],   // pawn opens for queen
         [[3, 0], [4, 0]],
         [[7, 3], [6, 4]],   // queen out of the way
-        [[4, 0], [5, 0]],
+        [[4, 0], [5, 0]]
     ]);
 
     var move = new Move(testState, [7, 4], [7, 2]);
@@ -396,7 +396,7 @@ QUnit.test( "a pawn may not advance two steps and capture at the same time",
         [[6, 7], [4, 7]],
         [[1, 3], [3, 3]],
         [[4, 7], [3, 7]],
-        [[3, 3], [4, 3]],
+        [[3, 3], [4, 3]]
     ]);
 
     var move = new Move(testState, [6, 4], [4, 3]);
