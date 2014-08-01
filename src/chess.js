@@ -166,6 +166,11 @@ var Move = function Move(gameState, fromPos, toPos) {
         var rookMove = new Move(gameState, rookFromPos(), rookToPos());
         return rookMove.squaresBetweenAreEmpty();
     };
+    this.isEnPassant = function isEnPassant() {
+        return gameState.enPassant.isPossible &&
+            gameState.enPassant.capturePos[0] === toPos[0] &&
+            gameState.enPassant.capturePos[1] === toPos[1];
+    };
     this.make = function make() {
         gameState.makeMove(this);
     };
@@ -191,7 +196,7 @@ Move.prototype = {
             return this.fileDist() === 1 && this.rankDist() === 1;
         }.bind(this);
         var takingMove = function takingMove() {
-            return this.targetSquare !== EMPTY;
+            return this.targetSquare !== EMPTY || this.isEnPassant();
         }.bind(this);
         var pieceIsPawn = function pieceIsPawn() {
             return this.piece.type === Type.PAWN;
@@ -257,12 +262,17 @@ Move.prototype = {
     },
 
     isCastling: function isCastling() {
-        return this.piece.type == Type.KING &&
+        return this.piece.type === Type.KING &&
                this.rookIsThere() &&
                !this.kingAlreadyMoved &&
                !this.rookAlreadyMoved() &&
                this.noPiecesInTheWayForRook() &&
             (this.fromPos[0] === 0 || this.fromPos[0] === 7);
+    },
+
+    isPawnDoubleAdvance: function isPawnDoubleAdvance() {
+        return this.piece.type === Type.PAWN &&
+               this.rankDist() === 2;
     },
 
     squaresBetweenAreEmpty: function squaresBetweenAreEmpty() {
@@ -275,6 +285,11 @@ var gameState = {
     playerOnTurn: Color.WHITE,
 
     piecesMoved: {
+    },
+
+    enPassant: {
+        isPossible: false,
+        capturePos: undefined
     },
 
     board: (function createBoard() {
@@ -408,6 +423,17 @@ var gameState = {
         if (move.isCastling()) {
             this.board.makeMove(new Move(gameState, rookFromPos(), rookToPos()));
         }
+        if (move.isEnPassant()) {
+            var pawnRank = this.enPassant.pawnPos[0],
+                pawnFile = this.enPassant.pawnPos[1];
+            this.board[pawnRank][pawnFile] = EMPTY;
+        }
+        if (move.isPawnDoubleAdvance()) {
+            this.enPassant.isPossible = true;
+            this.enPassant.pawnPos = move.toPos;
+            var delta = move.piece.color === Color.WHITE ? +1 : -1;
+            this.enPassant.capturePos = [move.toPos[0] + delta, move.toPos[1]];
+        }
         this.board.makeMove(move);
         this.playerOnTurn = oppositePlayer(this.playerOnTurn);
     },
@@ -425,6 +451,12 @@ var gameState = {
         for (var prop in this.piecesMoved) {
             if (this.piecesMoved.hasOwnProperty(prop)) {
                 newState.piecesMoved[prop] = this.piecesMoved[prop];
+            }
+        }
+        newState.enPassant = {};
+        for (var prop in this.enPassant) {
+            if (this.enPassant.hasOwnProperty(prop)) {
+                newState.enPassant[prop] = this.enPassant[prop];
             }
         }
 

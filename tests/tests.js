@@ -404,7 +404,20 @@ QUnit.test( "a pawn may not advance two steps and capture at the same time",
                 "pawn cannot advance two steps and capture at the same time");
 });
 
-// en passant
+QUnit.test( "pawn en passant capture", function( assert ) {
+    initializeWithMoves([
+        [[6, 4], [4, 4]],
+        [[1, 0], [3, 0]],
+        [[4, 4], [3, 4]],   // white pawn now stands ready to en passant
+        [[1, 3], [3, 3]],   // black pawn advanced two steps
+    ]);
+
+    var move = new Move(testState, [3, 4], [2, 3]);
+    assert.ok(move.isLegal(), "pawn can capture en passant");
+    move.make();
+    assert.ok(testState.board[3][3] === EMPTY, "...and it took the pawn");
+});
+
 // promotion
 
 // check
