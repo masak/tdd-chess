@@ -5,14 +5,14 @@ var Color = {
     BLACK: "black"
 };
 
-var lineOfSight = function(move) {
+var lineOfSight = function lineOfSight(move) {
     var positions = [];
-    var sgn = function(value) {
+    var sgn = function sgn(value) {
         return value > 0 ? +1 : value < 0 ? -1 : 0;
     };
     var dr = sgn(move.toPos[0] - move.fromPos[0]);
     var df = sgn(move.toPos[1] - move.fromPos[1]);
-    var reached = function(value, limit, delta) {
+    var reached = function reached(value, limit, delta) {
         return delta > 0 ? value >= limit :
                delta < 0 ? value <= limit :
                false;
@@ -29,75 +29,75 @@ var lineOfSight = function(move) {
     return positions;
 };
 
-var noPositions = function(move) {
+var noPositions = function noPositions(move) {
     return [];
 };
 
 var Type = {
     ROOK: {
         name: "rook",
-        jumpIsLegal: function(move) {
+        jumpIsLegal: function jumpIsLegal(move) {
             return move.isHorizontal() || move.isVertical();
         },
         positionsBetween: lineOfSight
     },
     KNIGHT: {
         name: "knight",
-        jumpIsLegal: function(move) {
+        jumpIsLegal: function jumpIsLegal(move) {
             return move.isKnightMove();
         },
         positionsBetween: noPositions
     },
     BISHOP: {
         name: "bishop",
-        jumpIsLegal: function(move) {
+        jumpIsLegal: function jumpIsLegal(move) {
             return move.isDiagonal();
         },
         positionsBetween: lineOfSight
     },
     QUEEN: {
         name: "queen",
-        jumpIsLegal: function(move) {
+        jumpIsLegal: function jumpIsLegal(move) {
             return Type.ROOK.jumpIsLegal(move) || Type.BISHOP.jumpIsLegal(move);
         },
         positionsBetween: lineOfSight
     },
     KING: {
         name: "king",
-        jumpIsLegal: function(move) {
+        jumpIsLegal: function jumpIsLegal(move) {
             return move.isOneOrTwoSteps();
         },
         positionsBetween: lineOfSight
     },
     PAWN: {
         name: "pawn",
-        jumpIsLegal: function(move, color) {
+        jumpIsLegal: function jumpIsLegal(move, color) {
             return move.isForwards(color) && move.isOneStep();
         },
         positionsBetween: lineOfSight
     }
 };
 
-var pieceName = function(color, type) {
+var pieceName = function pieceName(color, type) {
     return color + " " + type.name;
 }
 
-var Piece = function(color, type) {
+var Piece = function Piece(color, type) {
     this.color = color;
     this.type = type;
 
     this.name = pieceName(color, type);
 };
 
-Piece.prototype.jumpIsLegal = function(move) {
+Piece.prototype.jumpIsLegal = function jumpIsLegal(move) {
     return this.type.jumpIsLegal(move, this.color);
 };
 
-Piece.prototype.positionsBetween = function(move) {
+Piece.prototype.positionsBetween = function positionsBetween(move) {
     return this.type.positionsBetween(move);
 };
 
-Piece.prototype.symbol = function(type) {
+Piece.prototype.symbol = function symbol(type) {
     var i = ['king', 'queen', 'rook', 'bishop', 'knight', 'pawn'].indexOf(this.type.name);
     return '&#' + (9818 + i) + ';';
 };
@@ -119,40 +119,40 @@ Piece.BLACK_PAWN = new Piece(Color.BLACK, Type.PAWN);
 var EMPTY = {
     color: undefined,
     type: { name: "empty square" },
-    jumpIsLegal: function() { return false },
-    positionsBetween: function() { return [] },
-    symbol: function() { return "" }
+    jumpIsLegal: function jumpIsLegal() { return false },
+    positionsBetween: function positionsBetween() { return [] },
+    symbol: function symbol() { return "" }
 };
 
-var Move = function(gameState, fromPos, toPos) {
+var Move = function Move(gameState, fromPos, toPos) {
     this.fromPos = fromPos;
     this.toPos = toPos;
     this.piece = gameState.board[ fromPos[0] ][ fromPos[1] ];
     this.targetSquare = gameState.board[ toPos[0] ][ toPos[1] ];
     this.playerOnTurn = gameState.playerOnTurn;
     this.kingAlreadyMoved = gameState.piecesMoved[pieceName(this.playerOnTurn, Type.KING)];
-    this.squaresBetween = this.piece.positionsBetween(this).map(function(pos) {
+    this.squaresBetween = this.piece.positionsBetween(this).map(function squareFromPos(pos) {
         return gameState.board[ pos[0] ][ pos[1] ];
     });
-    this.squaresBetweenAreEmpty = function() {
-        var isEmpty = function(sq) { return sq === EMPTY };
+    this.squaresBetweenAreEmpty = function squaresBetweenAreEmpty() {
+        var isEmpty = function isEmpty(sq) { return sq === EMPTY };
         return this.squaresBetween.every(isEmpty);
     };
-    this.rookIsThere = function() {
+    this.rookIsThere = function rookIsThere() {
         var square = gameState.board[ fromPos[0] ][ toPos[1] > fromPos[1] ? 7 : 0 ];
         return square.type === Type.ROOK && square.color === this.piece.color;
     };
-    this.rookAlreadyMoved = function() {
+    this.rookAlreadyMoved = function rookAlreadyMoved() {
         var kingsOrQueens = toPos[1] > fromPos[1] ? "king's" : "queen's";
         return gameState.piecesMoved[kingsOrQueens + " " + pieceName(this.playerOnTurn, Type.ROOK)];
     };
-    this.noPiecesInTheWayForRook = function() {
-        var rookFromPos = function() {
+    this.noPiecesInTheWayForRook = function noPiecesInTheWayForRook() {
+        var rookFromPos = function rookFromPos() {
             var rank = this.fromPos[0];
             var file = this.toPos[1] > this.fromPos[1] ? 7 : 0;
             return [rank, file];
         }.bind(this);
-        var rookToPos = function() {
+        var rookToPos = function rookToPos() {
             var rank = this.fromPos[0];
             var file = this.toPos[1] > this.fromPos[1] ? 5 : 3;
             return [rank, file];
@@ -160,30 +160,30 @@ var Move = function(gameState, fromPos, toPos) {
 
         return new Move(gameState, rookFromPos(), rookToPos()).squaresBetweenAreEmpty();
     };
-    this.make = function() {
+    this.make = function make() {
         gameState.makeMove(this);
     };
 };
 
-var givenThat = function(premise) {
+var givenThat = function givenThat(premise) {
     return {
-        then: function(consequence) {
+        then: function then(consequence) {
             return !premise || consequence;
         }
     };
 };
 
 Move.prototype = {
-    isLegal: function() {
-        var pieceBelongsToPlayer = function() { return this.piece.color === this.playerOnTurn; }.bind(this);
-        var targetSquareDoesNotHaveFriendlyPiece = function() { return this.targetSquare.color !== this.piece.color; }.bind(this);
-        var moveIsInSameFile = function() { return this.fileDist() === 0; }.bind(this);
-        var takingMove = function() { return this.targetSquare !== EMPTY; }.bind(this);
-        var pieceIsPawn = function() { return this.piece.type === Type.PAWN; }.bind(this);
-        var pawnRestrictionHolds = function() { return moveIsInSameFile() !== takingMove(); }.bind(this);
-        var pieceIsKing = function() { return this.piece.type === Type.KING; }.bind(this);
-        var kingRestrictionHolds = function() { return this.isOneStep() || this.isCastling(); }.bind(this);
-        var pieceJumpIsLegal = function() { return this.piece.jumpIsLegal(this); }.bind(this);
+    isLegal: function isLegal() {
+        var pieceBelongsToPlayer = function pieceBelongsToPlayer() { return this.piece.color === this.playerOnTurn; }.bind(this);
+        var targetSquareDoesNotHaveFriendlyPiece = function targetSquareDoesNotHaveFriendlyPiece() { return this.targetSquare.color !== this.piece.color; }.bind(this);
+        var moveIsInSameFile = function moveIsInSameFile() { return this.fileDist() === 0; }.bind(this);
+        var takingMove = function takingMove() { return this.targetSquare !== EMPTY; }.bind(this);
+        var pieceIsPawn = function pieceIsPawn() { return this.piece.type === Type.PAWN; }.bind(this);
+        var pawnRestrictionHolds = function pawnRestrictionHolds() { return moveIsInSameFile() !== takingMove(); }.bind(this);
+        var pieceIsKing = function pieceIsKing() { return this.piece.type === Type.KING; }.bind(this);
+        var kingRestrictionHolds = function kingRestrictionHolds() { return this.isOneStep() || this.isCastling(); }.bind(this);
+        var pieceJumpIsLegal = function pieceJumpIsLegal() { return this.piece.jumpIsLegal(this); }.bind(this);
 
         return pieceBelongsToPlayer()                             &&
             targetSquareDoesNotHaveFriendlyPiece()                &&
@@ -193,45 +193,45 @@ Move.prototype = {
             this.squaresBetweenAreEmpty();
     },
 
-    rankDist: function() {
+    rankDist: function rankDist() {
         return Math.abs(this.fromPos[0] - this.toPos[0]);
     },
 
-    fileDist: function() {
+    fileDist: function fileDist() {
         return Math.abs(this.fromPos[1] - this.toPos[1]);
     },
 
-    isHorizontal: function() {
+    isHorizontal: function isHorizontal() {
         return this.rankDist() === 0;
     },
 
-    isVertical: function() {
+    isVertical: function isVertical() {
         return this.fileDist() === 0;
     },
 
-    isKnightMove: function() {
+    isKnightMove: function isKnightMove() {
         return this.rankDist() === 1 && this.fileDist() === 2 ||
                this.rankDist() === 2 && this.fileDist() === 1;
     },
 
-    isDiagonal: function() {
+    isDiagonal: function isDiagonal() {
         return this.rankDist() === this.fileDist();
     },
 
-    isOneStep: function() {
+    isOneStep: function isOneStep() {
         return this.rankDist() <= 1 && this.fileDist() <= 1;
     },
 
-    isOneOrTwoSteps: function() {
+    isOneOrTwoSteps: function isOneOrTwoSteps() {
         return this.rankDist() <= 2 && this.fileDist() <= 2;
     },
 
-    isForwards: function(color) {
+    isForwards: function isForwards(color) {
         return color === "white" && this.toPos[0] < this.fromPos[0] ||
                color === "black" && this.toPos[0] > this.fromPos[0];
     },
 
-    isCastling: function() {
+    isCastling: function isCastling() {
         return this.piece.type == Type.KING &&
                this.rookIsThere() &&
                !this.kingAlreadyMoved &&
@@ -247,7 +247,7 @@ var gameState = {
     piecesMoved: {
     },
 
-    board: (function () {
+    board: (function createBoard() {
         var board = [];
         for (var i = 0; i < 8; i++) {
             var row = [];
@@ -257,7 +257,7 @@ var gameState = {
             board.push(row);
         }
 
-        board.empty = function() {
+        board.empty = function empty() {
             for (var i = 0; i < 8; i++) {
                 for (var j = 0; j < 8; j++) {
                     this[i][j] = EMPTY;
@@ -265,7 +265,7 @@ var gameState = {
             }
         };
 
-        board.chess = function() {
+        board.chess = function chess() {
             this.empty();
 
             var br = Piece.BLACK_ROOK,
@@ -293,12 +293,12 @@ var gameState = {
             }
         };
 
-        board.makeMove = function(move) {
+        board.makeMove = function makeMove(move) {
             this[move.toPos[0]][move.toPos[1]] = this[move.fromPos[0]][move.fromPos[1]];
             this[move.fromPos[0]][move.fromPos[1]] = EMPTY;
         };
 
-        board.clone = function() {
+        board.clone = function clone() {
             var newBoard = [];
             for (var i = 0; i < 8; i++) {
                 var row = [];
@@ -323,20 +323,20 @@ var gameState = {
         return board;
     })(),
 
-    reset: function() {
+    reset: function reset() {
         this.playerOnTurn = Color.WHITE;
         this.piecesMoved = {};
         this.board.empty();
     },
 
-    chess: function() {
+    chess: function chess() {
         this.playerOnTurn = Color.WHITE;
         this.piecesMoved = {};
         this.board.chess();
     },
 
-    makeMove: function(move) {
-        var markPieceMoved = function(pos) {
+    makeMove: function makeMove(move) {
+        var markPieceMoved = function markPieceMoved(pos) {
             var rank = pos[0];
             var file = pos[1];
             var piece = this.board[rank][file];
@@ -356,12 +356,12 @@ var gameState = {
                 this.piecesMoved[kingsOrQueens + " " + piece.name] = true;
             }
         }.bind(this);
-        var rookFromPos = function() {
+        var rookFromPos = function rookFromPos() {
             var rank = move.fromPos[0];
             var file = move.toPos[1] > move.fromPos[1] ? 7 : 0;
             return [rank, file];
         };
-        var rookToPos = function() {
+        var rookToPos = function rookToPos() {
             var rank = move.fromPos[0];
             var file = move.toPos[1] > move.fromPos[1] ? 5 : 3;
             return [rank, file];
@@ -375,7 +375,7 @@ var gameState = {
         this.playerOnTurn = this.playerOnTurn === Color.WHITE ? Color.BLACK : Color.WHITE;
     },
 
-    clone: function() {
+    clone: function clone() {
         var newState = {};
 
         for (var prop in this) {
