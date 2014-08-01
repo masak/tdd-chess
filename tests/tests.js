@@ -418,6 +418,20 @@ QUnit.test( "pawn en passant capture", function( assert ) {
     assert.ok(testState.board[3][3] === EMPTY, "...and it took the pawn");
 });
 
+QUnit.test( "can only en passant immediately afterwards", function( assert ) {
+    initializeWithMoves([
+        [[6, 4], [4, 4]],
+        [[1, 0], [3, 0]],
+        [[4, 4], [3, 4]],   // white pawn now stands ready to en passant
+        [[1, 3], [3, 3]],   // black pawn advanced two steps (same as last test)
+        [[6, 7], [5, 6]],
+        [[3, 0], [4, 0]]    // two inconsequential moves
+    ]);
+
+    var move = new Move(testState, [3, 4], [2, 3]);
+    assert.ok(!move.isLegal(), "pawn missed its chance to capture en passant");
+});
+
 // promotion
 
 // check

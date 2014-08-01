@@ -434,6 +434,9 @@ var gameState = {
             var delta = move.piece.color === Color.WHITE ? +1 : -1;
             this.enPassant.capturePos = [move.toPos[0] + delta, move.toPos[1]];
         }
+        else {
+            this.enPassant.isPossible = false;
+        }
         this.board.makeMove(move);
         this.playerOnTurn = oppositePlayer(this.playerOnTurn);
     },
