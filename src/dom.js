@@ -44,12 +44,14 @@ var initializePlacementLogic = function() {
     };
 
     $('#board').on('click', 'td', function(event) {
-        if (selectedSquare) {
+        var pos = posFromSquare($('#board'), event.target);
+        var friendlyPiece = gameState.board[pos[0]][pos[1]].color === gameState.playerOnTurn;
+        if (selectedSquare && !friendlyPiece) {
             if (event.target === selectedSquare) {
                 return;
             }
             var fromPos = posFromSquare($('#board'), selectedSquare);
-            var toPos = posFromSquare($('#board'), event.target);
+            var toPos = pos;
             var move = new Move(gameState, fromPos, toPos);
             if (move.isLegal()) {
                 move.make();
@@ -65,10 +67,7 @@ var initializePlacementLogic = function() {
             $(selectedSquare).removeClass('selected');
             selectedSquare = undefined;
         }
-        else {
-            if ($(event.target).html() === "") {
-                return;
-            }
+        else if (friendlyPiece) {
             $(selectedSquare).removeClass('selected');
             selectedSquare = event.target;
             $(selectedSquare).addClass('selected');
