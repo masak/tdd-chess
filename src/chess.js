@@ -7,11 +7,8 @@ var Color = {
 
 var lineOfSight = function lineOfSight(move) {
     var positions = [];
-    var sgn = function sgn(value) {
-        return value > 0 ? +1 : value < 0 ? -1 : 0;
-    };
-    var dr = sgn(move.toPos[0] - move.fromPos[0]);
-    var df = sgn(move.toPos[1] - move.fromPos[1]);
+    var dr = Math.sign(move.toPos[0] - move.fromPos[0]);
+    var df = Math.sign(move.toPos[1] - move.fromPos[1]);
     var reached = function reached(value, limit, delta) {
         return delta > 0 ? value >= limit :
                delta < 0 ? value <= limit :
