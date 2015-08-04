@@ -299,7 +299,7 @@ var gameState = {
             board.push(row);
         }
 
-        board.empty = function empty() {
+        board.clear = function clear() {
             for (var i = 0; i < 8; i++) {
                 for (var j = 0; j < 8; j++) {
                     this[i][j] = EMPTY;
@@ -375,7 +375,7 @@ var gameState = {
     reset: function reset() {
         this.playerOnTurn = Color.WHITE;
         this.piecesMoved = {};
-        this.board.empty();
+        this.board.clear();
     },
 
     chess: function chess() {
