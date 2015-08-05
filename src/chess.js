@@ -124,157 +124,147 @@ var EMPTY = {
 };
 
 var Move = function Move(gameState, fromPos, toPos) {
-    this.fromPos = fromPos;
-    this.toPos = toPos;
-    this.piece = gameState.board[ fromPos[0] ][ fromPos[1] ];
-    this.targetSquare = gameState.board[ toPos[0] ][ toPos[1] ];
-    this.playerOnTurn = gameState.playerOnTurn;
-    var playersKing = pieceName(this.playerOnTurn, Type.KING);
-    this.kingAlreadyMoved = gameState.piecesMoved[playersKing];
+    var playerOnTurn = gameState.playerOnTurn;
+    var playersKing = pieceName(playerOnTurn, Type.KING);
     var pos2sq = function pos2sq(pos) {
         return gameState.board[ pos[0] ][ pos[1] ];
     };
-    this.squaresBetween = this.piece.positionsBetween(this).map(pos2sq);
-    this.rookIsThere = function rookIsThere() {
-        var rank = fromPos[0];
-        var file = toPos[1] > fromPos[1] ? 7 : 0;
-        var square = gameState.board[rank][file];
-        return square.type === Type.ROOK && square.color === this.piece.color;
+    var givenThat = function givenThat(premise) {
+        return {
+            then: function then(consequence) {
+                return !premise || consequence;
+            }
+        };
     };
-    this.rookAlreadyMoved = function rookAlreadyMoved() {
-        var kingsOrQueens = toPos[1] > fromPos[1] ? "king's" : "queen's";
-        var playersRook = pieceName(this.playerOnTurn, Type.ROOK);
-        return gameState.piecesMoved[kingsOrQueens + " " + playersRook];
-    };
-    this.noPiecesInTheWayForRook = function noPiecesInTheWayForRook() {
-        var rookFromPos = function rookFromPos() {
-            var rank = this.fromPos[0];
-            var file = this.toPos[1] > this.fromPos[1] ? 7 : 0;
-            return [rank, file];
-        }.bind(this);
-        var rookToPos = function rookToPos() {
-            var rank = this.fromPos[0];
-            var file = this.toPos[1] > this.fromPos[1] ? 5 : 3;
-            return [rank, file];
-        }.bind(this);
+    var piece = gameState.board[ fromPos[0] ][ fromPos[1] ];
 
-        var rookMove = new Move(gameState, rookFromPos(), rookToPos());
-        return rookMove.squaresBetweenAreEmpty();
-    };
-    this.isEnPassant = function isEnPassant() {
-        return gameState.enPassant.isPossible &&
-            gameState.enPassant.capturePos[0] === toPos[0] &&
-            gameState.enPassant.capturePos[1] === toPos[1];
-    };
-    this.make = function make() {
-        gameState.makeMove(this);
-    };
-};
+    var move = {
+        fromPos: fromPos,
+        toPos: toPos,
+        piece: piece,
+        targetSquare: gameState.board[ toPos[0] ][ toPos[1] ],
+        playerOnTurn: playerOnTurn,
+        kingAlreadyMoved: gameState.piecesMoved[playersKing],
+        rookIsThere: function rookIsThere() {
+            var rank = fromPos[0];
+            var file = toPos[1] > fromPos[1] ? 7 : 0;
+            var square = gameState.board[rank][file];
+            return square.type === Type.ROOK && square.color === this.piece.color;
+        },
+        rookAlreadyMoved: function rookAlreadyMoved() {
+            var kingsOrQueens = toPos[1] > fromPos[1] ? "king's" : "queen's";
+            var playersRook = pieceName(this.playerOnTurn, Type.ROOK);
+            return gameState.piecesMoved[kingsOrQueens + " " + playersRook];
+        },
+        noPiecesInTheWayForRook: function noPiecesInTheWayForRook() {
+            var rookFromPos = function rookFromPos() {
+                var rank = this.fromPos[0];
+                var file = this.toPos[1] > this.fromPos[1] ? 7 : 0;
+                return [rank, file];
+            }.bind(this);
+            var rookToPos = function rookToPos() {
+                var rank = this.fromPos[0];
+                var file = this.toPos[1] > this.fromPos[1] ? 5 : 3;
+                return [rank, file];
+            }.bind(this);
 
-var givenThat = function givenThat(premise) {
-    return {
-        then: function then(consequence) {
-            return !premise || consequence;
+            var rookMove = Move(gameState, rookFromPos(), rookToPos());
+            return rookMove.squaresBetweenAreEmpty();
+        },
+        isEnPassant: function isEnPassant() {
+            return gameState.enPassant.isPossible &&
+                gameState.enPassant.capturePos[0] === toPos[0] &&
+                gameState.enPassant.capturePos[1] === toPos[1];
+        },
+        make: function make() {
+            gameState.makeMove(this);
+        },
+        isLegal: function isLegal() {
+            var pieceBelongsToPlayer = function pieceBelongsToPlayer() {
+                return this.piece.color === this.playerOnTurn;
+            }.bind(this);
+            var notTakingFriendly = function notTakingFriendly() {
+                return this.targetSquare.color !== this.piece.color;
+            }.bind(this);
+            var oneRankOneFile = function moveIsInSameFile() {
+                return this.fileDist() === 1 && this.rankDist() === 1;
+            }.bind(this);
+            var takingMove = function takingMove() {
+                return this.targetSquare !== EMPTY || this.isEnPassant();
+            }.bind(this);
+            var pieceIsPawn = function pieceIsPawn() {
+                return this.piece.type === Type.PAWN;
+            }.bind(this);
+            var pawnRestrictionHolds = function pawnRestrictionHolds() {
+                return (oneRankOneFile() === takingMove()) &&
+                        (this.rankDist() === 1 || this.fromPos[0] === 1 ||
+                         this.fromPos[0] === 6);
+            }.bind(this);
+            var pieceIsKing = function pieceIsKing() {
+                return this.piece.type === Type.KING;
+            }.bind(this);
+            var kingRestrictionHolds = function kingRestrictionHolds() {
+                return this.isOneStep() || this.isCastling();
+            }.bind(this);
+
+            return pieceBelongsToPlayer()         &&
+                notTakingFriendly()               &&
+                givenThat(pieceIsPawn())
+                    .then(pawnRestrictionHolds()) &&
+                givenThat(pieceIsKing())
+                    .then(kingRestrictionHolds()) &&
+                this.piece.jumpIsLegal(this)      &&
+                this.squaresBetweenAreEmpty();
+        },
+        rankDist: function rankDist() {
+            return Math.abs(this.fromPos[0] - this.toPos[0]);
+        },
+        fileDist: function fileDist() {
+            return Math.abs(this.fromPos[1] - this.toPos[1]);
+        },
+        isHorizontal: function isHorizontal() {
+            return this.rankDist() === 0;
+        },
+        isVertical: function isVertical() {
+            return this.fileDist() === 0;
+        },
+        isKnightMove: function isKnightMove() {
+            return this.rankDist() === 1 && this.fileDist() === 2 ||
+                   this.rankDist() === 2 && this.fileDist() === 1;
+        },
+        isDiagonal: function isDiagonal() {
+            return this.rankDist() === this.fileDist();
+        },
+        isOneStep: function isOneStep() {
+            return this.rankDist() <= 1 && this.fileDist() <= 1;
+        },
+        isOneOrTwoSteps: function isOneOrTwoSteps() {
+            return this.rankDist() <= 2 && this.fileDist() <= 2;
+        },
+        isForwards: function isForwards(color) {
+            return color === "white" && this.toPos[0] < this.fromPos[0] ||
+                   color === "black" && this.toPos[0] > this.fromPos[0];
+        },
+        isCastling: function isCastling() {
+            return this.piece.type === Type.KING &&
+                   this.rookIsThere() &&
+                   !this.kingAlreadyMoved &&
+                   !this.rookAlreadyMoved() &&
+                   this.noPiecesInTheWayForRook() &&
+                (this.fromPos[0] === 0 || this.fromPos[0] === 7);
+        },
+        isPawnDoubleAdvance: function isPawnDoubleAdvance() {
+            return this.piece.type === Type.PAWN &&
+                   this.rankDist() === 2;
+        },
+        squaresBetweenAreEmpty: function squaresBetweenAreEmpty() {
+            var isEmpty = function isEmpty(sq) { return sq === EMPTY };
+            return this.squaresBetween.every(isEmpty);
         }
     };
-};
-
-Move.prototype = {
-    isLegal: function isLegal() {
-        var pieceBelongsToPlayer = function pieceBelongsToPlayer() {
-            return this.piece.color === this.playerOnTurn;
-        }.bind(this);
-        var notTakingFriendly = function notTakingFriendly() {
-            return this.targetSquare.color !== this.piece.color;
-        }.bind(this);
-        var oneRankOneFile = function moveIsInSameFile() {
-            return this.fileDist() === 1 && this.rankDist() === 1;
-        }.bind(this);
-        var takingMove = function takingMove() {
-            return this.targetSquare !== EMPTY || this.isEnPassant();
-        }.bind(this);
-        var pieceIsPawn = function pieceIsPawn() {
-            return this.piece.type === Type.PAWN;
-        }.bind(this);
-        var pawnRestrictionHolds = function pawnRestrictionHolds() {
-            return (oneRankOneFile() === takingMove()) &&
-                    (this.rankDist() === 1 || this.fromPos[0] === 1 ||
-                     this.fromPos[0] === 6);
-        }.bind(this);
-        var pieceIsKing = function pieceIsKing() {
-            return this.piece.type === Type.KING;
-        }.bind(this);
-        var kingRestrictionHolds = function kingRestrictionHolds() {
-            return this.isOneStep() || this.isCastling();
-        }.bind(this);
-
-        return pieceBelongsToPlayer()         &&
-            notTakingFriendly()               &&
-            givenThat(pieceIsPawn())
-                .then(pawnRestrictionHolds()) &&
-            givenThat(pieceIsKing())
-                .then(kingRestrictionHolds()) &&
-            this.piece.jumpIsLegal(this)      &&
-            this.squaresBetweenAreEmpty();
-    },
-
-    rankDist: function rankDist() {
-        return Math.abs(this.fromPos[0] - this.toPos[0]);
-    },
-
-    fileDist: function fileDist() {
-        return Math.abs(this.fromPos[1] - this.toPos[1]);
-    },
-
-    isHorizontal: function isHorizontal() {
-        return this.rankDist() === 0;
-    },
-
-    isVertical: function isVertical() {
-        return this.fileDist() === 0;
-    },
-
-    isKnightMove: function isKnightMove() {
-        return this.rankDist() === 1 && this.fileDist() === 2 ||
-               this.rankDist() === 2 && this.fileDist() === 1;
-    },
-
-    isDiagonal: function isDiagonal() {
-        return this.rankDist() === this.fileDist();
-    },
-
-    isOneStep: function isOneStep() {
-        return this.rankDist() <= 1 && this.fileDist() <= 1;
-    },
-
-    isOneOrTwoSteps: function isOneOrTwoSteps() {
-        return this.rankDist() <= 2 && this.fileDist() <= 2;
-    },
-
-    isForwards: function isForwards(color) {
-        return color === "white" && this.toPos[0] < this.fromPos[0] ||
-               color === "black" && this.toPos[0] > this.fromPos[0];
-    },
-
-    isCastling: function isCastling() {
-        return this.piece.type === Type.KING &&
-               this.rookIsThere() &&
-               !this.kingAlreadyMoved &&
-               !this.rookAlreadyMoved() &&
-               this.noPiecesInTheWayForRook() &&
-            (this.fromPos[0] === 0 || this.fromPos[0] === 7);
-    },
-
-    isPawnDoubleAdvance: function isPawnDoubleAdvance() {
-        return this.piece.type === Type.PAWN &&
-               this.rankDist() === 2;
-    },
-
-    squaresBetweenAreEmpty: function squaresBetweenAreEmpty() {
-        var isEmpty = function isEmpty(sq) { return sq === EMPTY };
-        return this.squaresBetween.every(isEmpty);
-    }
-};
+    move.squaresBetween = piece.positionsBetween(move).map(pos2sq);
+    return move;
+}
 
 var gameState = {
     playerOnTurn: Color.WHITE,
@@ -419,7 +409,7 @@ var gameState = {
 
         markPieceMoved(move.fromPos);
         if (move.isCastling()) {
-            this.board.makeMove(new Move(gameState, rookFromPos(), rookToPos()));
+            this.board.makeMove(Move(gameState, rookFromPos(), rookToPos()));
         }
         if (move.isEnPassant()) {
             var pawnRank = this.enPassant.pawnPos[0],
