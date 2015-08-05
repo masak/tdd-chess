@@ -83,39 +83,37 @@ var pieceName = function pieceName(color, type) {
 }
 
 var Piece = function Piece(color, type) {
-    this.color = color;
-    this.type = type;
+    return {
+        color: color,
+        type: type,
+        name: pieceName(color, type),
+        jumpIsLegal: function jumpIsLegal(move) {
+            return this.type.jumpIsLegal(move, this.color);
+        },
+        positionsBetween: function positionsBetween(move) {
+            return this.type.positionsBetween(move);
+        },
+        symbol: function symbol(type) {
+            var names = ['king', 'queen', 'rook', 'bishop', 'knight', 'pawn'];
+            var i = names.indexOf(this.type.name);
+            return '&#' + (9818 + i) + ';';
+        }
+    };
+}
 
-    this.name = pieceName(color, type);
-};
+Piece.WHITE_ROOK = Piece(Color.WHITE, Type.ROOK);
+Piece.WHITE_KNIGHT = Piece(Color.WHITE, Type.KNIGHT);
+Piece.WHITE_BISHOP = Piece(Color.WHITE, Type.BISHOP);
+Piece.WHITE_QUEEN = Piece(Color.WHITE, Type.QUEEN);
+Piece.WHITE_KING = Piece(Color.WHITE, Type.KING);
+Piece.WHITE_PAWN = Piece(Color.WHITE, Type.PAWN);
 
-Piece.prototype.jumpIsLegal = function jumpIsLegal(move) {
-    return this.type.jumpIsLegal(move, this.color);
-};
-
-Piece.prototype.positionsBetween = function positionsBetween(move) {
-    return this.type.positionsBetween(move);
-};
-
-Piece.prototype.symbol = function symbol(type) {
-    var names = ['king', 'queen', 'rook', 'bishop', 'knight', 'pawn'];
-    var i = names.indexOf(this.type.name);
-    return '&#' + (9818 + i) + ';';
-};
-
-Piece.WHITE_ROOK = new Piece(Color.WHITE, Type.ROOK);
-Piece.WHITE_KNIGHT = new Piece(Color.WHITE, Type.KNIGHT);
-Piece.WHITE_BISHOP = new Piece(Color.WHITE, Type.BISHOP);
-Piece.WHITE_QUEEN = new Piece(Color.WHITE, Type.QUEEN);
-Piece.WHITE_KING = new Piece(Color.WHITE, Type.KING);
-Piece.WHITE_PAWN = new Piece(Color.WHITE, Type.PAWN);
-
-Piece.BLACK_ROOK = new Piece(Color.BLACK, Type.ROOK);
-Piece.BLACK_KNIGHT = new Piece(Color.BLACK, Type.KNIGHT);
-Piece.BLACK_BISHOP = new Piece(Color.BLACK, Type.BISHOP);
-Piece.BLACK_QUEEN = new Piece(Color.BLACK, Type.QUEEN);
-Piece.BLACK_KING = new Piece(Color.BLACK, Type.KING);
-Piece.BLACK_PAWN = new Piece(Color.BLACK, Type.PAWN);
+Piece.BLACK_ROOK = Piece(Color.BLACK, Type.ROOK);
+Piece.BLACK_KNIGHT = Piece(Color.BLACK, Type.KNIGHT);
+Piece.BLACK_BISHOP = Piece(Color.BLACK, Type.BISHOP);
+Piece.BLACK_QUEEN = Piece(Color.BLACK, Type.QUEEN);
+Piece.BLACK_KING = Piece(Color.BLACK, Type.KING);
+Piece.BLACK_PAWN = Piece(Color.BLACK, Type.PAWN);
 
 var EMPTY = {
     color: undefined,
