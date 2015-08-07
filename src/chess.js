@@ -403,35 +403,12 @@ var gameState = {
     },
 
     clone: function clone() {
-        var newState = {};
-
-        for (var prop in this) {
-            if (this.hasOwnProperty(prop)) {
-                newState[prop] = this[prop];
-            }
+        var newState = JSON.parse(JSON.stringify(this));
+        var methods = ['reset', 'chess', 'makeMove'];
+        for (var i in methods) {
+            var method = methods[i];
+            newState[method] = this[method];
         }
-        newState.piecesMoved = {};
-        for (var prop in this.piecesMoved) {
-            if (this.piecesMoved.hasOwnProperty(prop)) {
-                newState.piecesMoved[prop] = this.piecesMoved[prop];
-            }
-        }
-        newState.enPassant = {};
-        for (var prop in this.enPassant) {
-            if (this.enPassant.hasOwnProperty(prop)) {
-                newState.enPassant[prop] = this.enPassant[prop];
-            }
-        }
-
-        newState.board = [];
-        for (var i = 0; i < 8; i++) {
-            var row = [];
-            for (var j = 0; j < 8; j++) {
-                row.push(this.board[i][j]);
-            }
-            newState.board.push(row);
-        }
-
         return newState;
     }
 };
