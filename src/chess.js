@@ -287,92 +287,64 @@ var gameState = {
             board.push(row);
         }
 
-        board.clear = function clear() {
-            for (var i = 0; i < 8; i++) {
-                for (var j = 0; j < 8; j++) {
-                    this[i][j] = EMPTY;
-                }
-            }
-        };
-
-        board.chess = function chess() {
-            var br = Piece.BLACK_ROOK,
-                bn = Piece.BLACK_KNIGHT,
-                bb = Piece.BLACK_BISHOP,
-                bq = Piece.BLACK_QUEEN,
-                bk = Piece.BLACK_KING,
-                bp = Piece.BLACK_PAWN,
-                wr = Piece.WHITE_ROOK,
-                wn = Piece.WHITE_KNIGHT,
-                wb = Piece.WHITE_BISHOP,
-                wq = Piece.WHITE_QUEEN,
-                wk = Piece.WHITE_KING,
-                wp = Piece.WHITE_PAWN,
-                __ = EMPTY;
-
-            var chessLayout = [
-                [br, bn, bb, bq, bk, bb, bn, br],
-                [bp, bp, bp, bp, bp, bp, bp, bp],
-                [__, __, __, __, __, __, __, __],
-                [__, __, __, __, __, __, __, __],
-                [__, __, __, __, __, __, __, __],
-                [__, __, __, __, __, __, __, __],
-                [wp, wp, wp, wp, wp, wp, wp, wp],
-                [wr, wn, wb, wq, wk, wb, wn, wr]
-            ];
-
-            for (var row in chessLayout) {
-                this[row] = chessLayout[row];
-            }
-        };
-
-        board.makeMove = function makeMove(move) {
-            var fromRank = move.fromPos[0],
-                fromFile = move.fromPos[1],
-                toRank   = move.toPos[0],
-                toFile   = move.toPos[1];
-            this[toRank][toFile] = this[fromRank][fromFile];
-            this[fromRank][fromFile] = EMPTY;
-        };
-
-        board.clone = function clone() {
-            var newBoard = [];
-            for (var i = 0; i < 8; i++) {
-                var row = [];
-                for (var j = 0; j < 8; j++) {
-                    row.push(this[i][j]);
-                }
-                newBoard.push(row);
-            }
-
-            for (var prop in this) {
-                if (prop.match(/^\d+$/)) {
-                    continue;
-                }
-                if (this.hasOwnProperty(prop)) {
-                    newBoard[prop] = this[prop];
-                }
-            }
-
-            return newBoard;
-        };
-
         return board;
     })(),
 
     reset: function reset() {
         this.playerOnTurn = Color.WHITE;
         this.piecesMoved = {};
-        this.board.clear();
+
+        for (var i = 0; i < 8; i++) {
+            for (var j = 0; j < 8; j++) {
+                this.board[i][j] = EMPTY;
+            }
+        }
     },
 
     chess: function chess() {
         this.playerOnTurn = Color.WHITE;
         this.piecesMoved = {};
-        this.board.chess();
+
+        var br = Piece.BLACK_ROOK,
+            bn = Piece.BLACK_KNIGHT,
+            bb = Piece.BLACK_BISHOP,
+            bq = Piece.BLACK_QUEEN,
+            bk = Piece.BLACK_KING,
+            bp = Piece.BLACK_PAWN,
+            wr = Piece.WHITE_ROOK,
+            wn = Piece.WHITE_KNIGHT,
+            wb = Piece.WHITE_BISHOP,
+            wq = Piece.WHITE_QUEEN,
+            wk = Piece.WHITE_KING,
+            wp = Piece.WHITE_PAWN,
+            __ = EMPTY;
+
+        var chessLayout = [
+            [br, bn, bb, bq, bk, bb, bn, br],
+            [bp, bp, bp, bp, bp, bp, bp, bp],
+            [__, __, __, __, __, __, __, __],
+            [__, __, __, __, __, __, __, __],
+            [__, __, __, __, __, __, __, __],
+            [__, __, __, __, __, __, __, __],
+            [wp, wp, wp, wp, wp, wp, wp, wp],
+            [wr, wn, wb, wq, wk, wb, wn, wr]
+        ];
+
+        for (var row in chessLayout) {
+            this.board[row] = chessLayout[row];
+        }
     },
 
     makeMove: function makeMove(move) {
+        var makeMoveOnBoard = function makeMoveOnBoard(fromPos, toPos) {
+            var fromRank = fromPos[0],
+                fromFile = fromPos[1],
+                toRank   = toPos[0],
+                toFile   = toPos[1];
+            this.board[toRank][toFile] = this.board[fromRank][fromFile];
+            this.board[fromRank][fromFile] = EMPTY;
+        }.bind(this);
+
         var markPieceMoved = function markPieceMoved(pos) {
             var rank = pos[0];
             var file = pos[1];
@@ -409,7 +381,7 @@ var gameState = {
 
         markPieceMoved(move.fromPos);
         if (move.isCastling()) {
-            this.board.makeMove(Move(gameState, rookFromPos(), rookToPos()));
+            makeMoveOnBoard(rookFromPos(), rookToPos());
         }
         if (move.isEnPassant()) {
             var pawnRank = this.enPassant.pawnPos[0],
@@ -425,7 +397,8 @@ var gameState = {
         else {
             this.enPassant.isPossible = false;
         }
-        this.board.makeMove(move);
+
+        makeMoveOnBoard(move.fromPos, move.toPos);
         this.playerOnTurn = oppositePlayer(this.playerOnTurn);
     },
 
@@ -437,7 +410,6 @@ var gameState = {
                 newState[prop] = this[prop];
             }
         }
-        newState.board = this.board.clone();
         newState.piecesMoved = {};
         for (var prop in this.piecesMoved) {
             if (this.piecesMoved.hasOwnProperty(prop)) {
@@ -449,6 +421,15 @@ var gameState = {
             if (this.enPassant.hasOwnProperty(prop)) {
                 newState.enPassant[prop] = this.enPassant[prop];
             }
+        }
+
+        newState.board = [];
+        for (var i = 0; i < 8; i++) {
+            var row = [];
+            for (var j = 0; j < 8; j++) {
+                row.push(this.board[i][j]);
+            }
+            newState.board.push(row);
         }
 
         return newState;
