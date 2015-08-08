@@ -183,7 +183,7 @@ QUnit.test( "turn alternates between players", function( assert ) {
     var move = createMove([1, 4], [2, 4]);
     assert.ok(!rules.isLegal(move, testState), "black cannot start");
 
-    testState.makeMove(createMove([6, 4], [5, 4]));
+    testState.makeMove([6, 4], [5, 4]);
     move = createMove([1, 4], [2, 4]);
     assert.ok(rules.isLegal(move, testState), "black can move after white made a move");
 });
@@ -269,7 +269,7 @@ function initializeWithMoves(moves) {
         var move = moves[i];
         var fromPos = move[0],
             toPos = move[1];
-        testState.makeMove(createMove(fromPos, toPos));
+        testState.makeMove(fromPos, toPos);
     }
 }
 
@@ -387,7 +387,7 @@ QUnit.test( "a pawn can advance two steps from its original rank",
     var move = createMove([6, 4], [4, 4]);
     assert.ok(rules.isLegal(move, testState), "the pawn can advance two steps");
 
-    testState.makeMove(createMove([6, 4], [5, 4]));
+    testState.makeMove([6, 4], [5, 4]);
     move = createMove([5, 4], [3, 4]);
     assert.ok(!rules.isLegal(move, testState), "...but only from its original rank");
 });

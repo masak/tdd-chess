@@ -322,6 +322,16 @@ var gameState = {
     },
 
     makeMove: function makeMove(move) {
+        // allow two position arguments to auto-coerce to a move
+        if (arguments.length == 2
+            && arguments[0] instanceof Array
+            && arguments[0].length == 2
+            && arguments[1] instanceof Array
+            && arguments[1].length == 2) {
+
+            move = createMove(arguments[0], arguments[1]);
+        }
+
         var movePieceOnBoard = function movePieceOnBoard(move) {
             var fromPos = move.fromPos;
             var toPos = move.toPos;
