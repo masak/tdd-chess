@@ -188,12 +188,9 @@ var rules = {
             return true;
         }
 
-        var positionsBetween = piece.between(fromPos, toPos);
-        for (var i = 0; i < positionsBetween.length; i++) {
-            var pos = positionsBetween[i];
-            if (state.pieceAt(pos) != EMPTY) {
-                return false;
-            }
+        var squares = piece.between(fromPos, toPos);
+        if (!state.allSquaresEmpty(squares)) {
+            return false;
         }
 
         var targetSquare = state.pieceAt(toPos);
@@ -235,15 +232,9 @@ var rules = {
 
         var rookFromFile = kingDirection == 1 ? 7 : 0;
         var rookFromPos = [rank, rookFromFile];
-        var positionsBetweenForRook = lineOfSight(rookFromPos, kingPos);
-        for (var i = 0; i < positionsBetweenForRook.length; i++) {
-            var pos = positionsBetweenForRook[i];
-            if (state.pieceAt(pos) !== EMPTY) {
-                return false;
-            }
-        }
+        var squares = lineOfSight(rookFromPos, kingPos);
 
-        return true;
+        return state.allSquaresEmpty(squares);
     },
     isEnPassant: function isEnPassant(move, state) {
         var enPassant = state.enPassant;
@@ -352,6 +343,12 @@ var createState = function createState(layout) {
 
         pieceAt: function pieceAt(pos) {
             return board[ pos[0] ][ pos[1] ];
+        },
+
+        allSquaresEmpty: function allSquaresEmpty(positions) {
+            return positions.every(function(pos) {
+                return this.pieceAt(pos) === EMPTY;
+            }.bind(this));
         },
 
         makeMove: function makeMove(move) {
