@@ -13,22 +13,24 @@ var checkMoves = function(assert, conf) {
 
     for (var i in conf.legal) {
         var newPos = conf.legal[i];
-        var move = Move(testState, pos, newPos);
-        assert.ok(move.isLegal(), "Legal: moving a " + piece.name +
-                    " from " + pos + " to " + newPos);
+        var move = createMove(pos, newPos);
+        assert.ok(rules.isLegal(move, testState),
+            "Legal: moving a " + piece.name +
+            " from " + pos + " to " + newPos);
     }
 
     for (var i in conf.illegal) {
         var newPos = conf.illegal[i];
-        var move = Move(testState, pos, newPos);
-        assert.ok(!move.isLegal(), "Illegal: moving a " + piece.name +
-                    " from " + pos + " to " + newPos);
+        var move = createMove(pos, newPos);
+        assert.ok(!rules.isLegal(move, testState),
+            "Illegal: moving a " + piece.name +
+            " from " + pos + " to " + newPos);
     }
 };
 
 QUnit.test( "rook moves", function( assert ) {
     checkMoves(assert, {
-        piece: Piece.WHITE_ROOK,
+        piece: WHITE_ROOK,
         initPos: [5, 4],
         legal: [
             [7, 4],
@@ -44,7 +46,7 @@ QUnit.test( "rook moves", function( assert ) {
 
 QUnit.test( "knight moves", function( assert ) {
     checkMoves(assert, {
-        piece: Piece.WHITE_KNIGHT,
+        piece: WHITE_KNIGHT,
         initPos: [5, 4],
         legal: [
             [3, 3],
@@ -63,7 +65,7 @@ QUnit.test( "knight moves", function( assert ) {
 
 QUnit.test( "bishop moves", function( assert ) {
     checkMoves(assert, {
-        piece: Piece.WHITE_BISHOP,
+        piece: WHITE_BISHOP,
         initPos: [5, 4],
         legal: [
             [4, 5],
@@ -82,7 +84,7 @@ QUnit.test( "bishop moves", function( assert ) {
 
 QUnit.test( "queen moves", function( assert ) {
     checkMoves(assert, {
-        piece: Piece.WHITE_QUEEN,
+        piece: WHITE_QUEEN,
         initPos: [5, 4],
         legal: [
             [7, 4],
@@ -106,7 +108,7 @@ QUnit.test( "queen moves", function( assert ) {
 
 QUnit.test( "king moves", function( assert ) {
     checkMoves(assert, {
-        piece: Piece.WHITE_KING,
+        piece: WHITE_KING,
         initPos: [5, 4],
         legal: [
             [6, 4],
@@ -133,7 +135,7 @@ QUnit.test( "king moves", function( assert ) {
 
 QUnit.test( "pawn moves", function( assert ) {
     checkMoves(assert, {
-        piece: Piece.WHITE_PAWN,
+        piece: WHITE_PAWN,
         initPos: [5, 4],
         legal: [
             [4, 4]
@@ -154,7 +156,7 @@ QUnit.test( "pawn moves", function( assert ) {
     });
 
     checkMoves(assert, {
-        piece: Piece.BLACK_PAWN,
+        piece: BLACK_PAWN,
         initPos: [5, 4],
         legal: [
             [6, 4]
@@ -178,87 +180,87 @@ QUnit.test( "pawn moves", function( assert ) {
 QUnit.test( "turn alternates between players", function( assert ) {
     testState.chess();
 
-    var move = Move(testState, [1, 4], [2, 4]);
-    assert.ok(!move.isLegal(), "black cannot start");
+    var move = createMove([1, 4], [2, 4]);
+    assert.ok(!rules.isLegal(move, testState), "black cannot start");
 
-    Move(testState, [6, 4], [5, 4]).make();
-    move = Move(testState, [1, 4], [2, 4]);
-    assert.ok(move.isLegal(), "black can move after white made a move");
+    testState.makeMove(createMove([6, 4], [5, 4]));
+    move = createMove([1, 4], [2, 4]);
+    assert.ok(rules.isLegal(move, testState), "black can move after white made a move");
 });
 
 QUnit.test( "pieces cannot take their own", function( assert ) {
     testState.reset();
 
-    testState.board[3][3] = Piece.WHITE_QUEEN;
-    testState.board[5][5] = Piece.WHITE_PAWN;
-    testState.board[7][3] = Piece.BLACK_PAWN;
+    testState.board[3][3] = WHITE_QUEEN;
+    testState.board[5][5] = WHITE_PAWN;
+    testState.board[7][3] = BLACK_PAWN;
 
-    var takeOwnPawn = Move(testState, [3, 3], [5, 5]);
-    assert.ok(!takeOwnPawn.isLegal(), "can't take own piece");
+    var takeOwnPawn = createMove([3, 3], [5, 5]);
+    assert.ok(!rules.isLegal(takeOwnPawn, testState), "can't take own piece");
 
-    var takeOpponentPawn = Move(testState, [3, 3], [7, 3]);
-    assert.ok(takeOpponentPawn.isLegal(), "can take opponent piece");
+    var takeOpponentPawn = createMove([3, 3], [7, 3]);
+    assert.ok(rules.isLegal(takeOpponentPawn, testState), "can take opponent piece");
 });
 
 QUnit.test( "moving and capturing pawns", function( assert ) {
     testState.reset();
 
-    testState.board[3][4] = Piece.WHITE_PAWN;
-    testState.board[2][4] = Piece.BLACK_QUEEN;
+    testState.board[3][4] = WHITE_PAWN;
+    testState.board[2][4] = BLACK_QUEEN;
 
-    var forwardToCapture = Move(testState, [3, 4], [2, 4]);
-    assert.ok(!forwardToCapture.isLegal(), "can't capture by moving forward");
-    var diagonalToMove = Move(testState, [3, 4], [2, 5]);
-    assert.ok(!diagonalToMove.isLegal(), "can't do a normal move diagonally");
+    var forwardToCapture = createMove([3, 4], [2, 4]);
+    assert.ok(!rules.isLegal(forwardToCapture, testState), "can't capture by moving forward");
+    var diagonalToMove = createMove([3, 4], [2, 5]);
+    assert.ok(!rules.isLegal(diagonalToMove, testState), "can't do a normal move diagonally");
 
     testState.board[2][4] = EMPTY;
-    testState.board[2][5] = Piece.BLACK_QUEEN;
+    testState.board[2][5] = BLACK_QUEEN;
 
-    var forwardToMove = Move(testState, [3, 4], [2, 4]);
-    assert.ok(forwardToMove.isLegal(), "can do a normal move forward");
-    var diagonalToCapture = Move(testState, [3, 4], [2, 5]);
-    assert.ok(diagonalToCapture.isLegal(), "can capture by moving diagonally");
+    var forwardToMove = createMove([3, 4], [2, 4]);
+    assert.ok(rules.isLegal(forwardToMove, testState), "can do a normal move forward");
+    var diagonalToCapture = createMove([3, 4], [2, 5]);
+    assert.ok(rules.isLegal(diagonalToCapture, testState), "can capture by moving diagonally");
 });
 
 QUnit.test( "pieces cannot go through things", function( assert ) {
     testState.reset();
 
-    testState.board[1][1] = Piece.WHITE_PAWN;
-    testState.board[1][2] = Piece.WHITE_ROOK;
-    testState.board[1][3] = Piece.WHITE_BISHOP;
-    testState.board[1][4] = Piece.WHITE_QUEEN;
+    testState.board[1][1] = WHITE_PAWN;
+    testState.board[1][2] = WHITE_ROOK;
+    testState.board[1][3] = WHITE_BISHOP;
+    testState.board[1][4] = WHITE_QUEEN;
 
-    testState.board[2][1] = Piece.BLACK_QUEEN;
-    testState.board[6][2] = Piece.BLACK_QUEEN;
-    testState.board[2][3] = Piece.BLACK_QUEEN;
-    testState.board[3][5] = Piece.BLACK_QUEEN;
-    testState.board[2][5] = Piece.BLACK_QUEEN;
+    testState.board[2][1] = BLACK_QUEEN;
+    testState.board[6][2] = BLACK_QUEEN;
+    testState.board[2][3] = BLACK_QUEEN;
+    testState.board[3][5] = BLACK_QUEEN;
+    testState.board[2][5] = BLACK_QUEEN;
 
-    var pawnThroughPiece = Move(testState, [1, 1], [3, 1]);
-    assert.ok(!pawnThroughPiece.isLegal(), "pawn can't go through a piece");
+    var pawnThroughPiece = createMove([1, 1], [3, 1]);
+    assert.ok(!rules.isLegal(pawnThroughPiece, testState), "pawn can't go through a piece");
 
-    var rookThroughPiece = Move(testState, [1, 2], [7, 2]);
-    assert.ok(!rookThroughPiece.isLegal(), "rook can't go through a piece");
+    var rookThroughPiece = createMove([1, 2], [7, 2]);
+    assert.ok(!rules.isLegal(rookThroughPiece, testState), "rook can't go through a piece");
 
-    var bishopThroughPiece = Move(testState, [1, 3], [5, 7]);
-    assert.ok(!bishopThroughPiece.isLegal(), "bishop can't go through a piece");
+    var bishopThroughPiece = createMove([1, 3], [5, 7]);
+    assert.ok(!rules.isLegal(bishopThroughPiece, testState), "bishop can't go through a piece");
 
-    var queenThoughPiece = Move(testState, [1, 4], [3, 2]);
-    assert.ok(!queenThoughPiece.isLegal(), "queen can't go though a piece");
+    var queenThoughPiece = createMove([1, 4], [3, 2]);
+    assert.ok(!rules.isLegal(queenThoughPiece, testState), "queen can't go though a piece");
 });
 
 QUnit.test( "the knight can go through things", function( assert ) {
     testState.reset();
 
-    testState.board[1][1] = Piece.WHITE_KNIGHT;
+    testState.board[1][1] = WHITE_KNIGHT;
 
-    testState.board[2][1] = Piece.BLACK_PAWN;
-    testState.board[1][2] = Piece.BLACK_KNIGHT;
-    testState.board[2][2] = Piece.BLACK_BISHOP;
-    testState.board[1][3] = Piece.BLACK_QUEEN;
+    testState.board[2][1] = BLACK_PAWN;
+    testState.board[1][2] = BLACK_KNIGHT;
+    testState.board[2][2] = BLACK_BISHOP;
+    testState.board[1][3] = BLACK_QUEEN;
 
-    var knightOverPieces = Move(testState, [1, 1], [2, 3]);
-    assert.ok(knightOverPieces.isLegal(), "knight can jump over pieces");
+    var knightOverPieces = createMove([1, 1], [2, 3]);
+    assert.ok(rules.isLegal(knightOverPieces, testState), "knight can jump over pieces");
 });
 
 function initializeWithMoves(moves) {
@@ -267,7 +269,7 @@ function initializeWithMoves(moves) {
         var move = moves[i];
         var fromPos = move[0],
             toPos = move[1];
-        Move(testState, fromPos, toPos).make();
+        testState.makeMove(createMove(fromPos, toPos));
     }
 }
 
@@ -281,11 +283,11 @@ QUnit.test( "castling is legal", function( assert ) {
         [[3, 0], [4, 0]]
     ]);
 
-    var move = Move(testState, [7, 4], [7, 6]);
-    assert.ok(move.isLegal(), "white king can castle here");
-    move.make();
+    var move = createMove([7, 4], [7, 6]);
+    assert.ok(rules.isLegal(move, testState), "white king can castle here");
+    testState.makeMove(move);
     assert.ok(testState.board[7][7] === EMPTY, "rook also moved...");
-    assert.ok(testState.board[7][5] === Piece.WHITE_ROOK, "...to here");
+    assert.ok(testState.board[7][5] === WHITE_ROOK, "...to here");
 });
 
 QUnit.test( "castling is only legal if the rook is there", function( assert ) {
@@ -302,8 +304,8 @@ QUnit.test( "castling is only legal if the rook is there", function( assert ) {
         [[1, 1], [2, 1]]
     ]);
 
-    var move = Move(testState, [7, 4], [7, 6]);
-    assert.ok(!move.isLegal(),
+    var move = createMove([7, 4], [7, 6]);
+    assert.ok(!rules.isLegal(move, testState),
                 "can not castle -- the rook is not in the right place");
 });
 
@@ -322,8 +324,8 @@ QUnit.test( "castling is only legal if the king hasn't moved yet",
         [[1, 1], [2, 1]]
     ]);
 
-    var move = Move(testState, [7, 4], [7, 6]);
-    assert.ok(!move.isLegal(), "king can not castle because it already moved");
+    var move = createMove([7, 4], [7, 6]);
+    assert.ok(!rules.isLegal(move, testState), "king can not castle because it already moved");
 });
 
 QUnit.test( "castling is only legal if the chosen rook hasn't moved yet",
@@ -341,8 +343,8 @@ QUnit.test( "castling is only legal if the chosen rook hasn't moved yet",
         [[1, 1], [2, 1]]
     ]);
 
-    var move = Move(testState, [7, 4], [7, 6]);
-    assert.ok(!move.isLegal(),
+    var move = createMove([7, 4], [7, 6]);
+    assert.ok(!rules.isLegal(move, testState),
                 "white king can not castle because the rook already moved");
 });
 
@@ -355,9 +357,9 @@ QUnit.test( "castling is only legal if there are no pieces " +
         [[2, 0], [3, 0]]
     ]);
 
-    var move = Move(testState, [7, 4], [7, 6]);
-    assert.ok(!move.isLegal(),
-                "white king can not castle -- knight is standing in the way");
+    var move = createMove([7, 4], [7, 6]);
+    assert.ok(!rules.isLegal(move, testState),
+                "white king can not castle -- bishop is standing in the way");
 });
 
 QUnit.test( "castling is only legal if there are no pieces between king " +
@@ -373,8 +375,8 @@ QUnit.test( "castling is only legal if there are no pieces between king " +
         [[4, 0], [5, 0]]
     ]);
 
-    var move = Move(testState, [7, 4], [7, 2]);
-    assert.ok(!move.isLegal(),
+    var move = createMove([7, 4], [7, 2]);
+    assert.ok(!rules.isLegal(move, testState),
                 "white king can not castle -- queen's knight is in the way");
 });
 
@@ -382,12 +384,12 @@ QUnit.test( "a pawn can advance two steps from its original rank",
             function( assert ) {
     testState.chess();
 
-    var move = Move(testState, [6, 4], [4, 4]);
-    assert.ok(move.isLegal(), "the pawn can advance two steps");
+    var move = createMove([6, 4], [4, 4]);
+    assert.ok(rules.isLegal(move, testState), "the pawn can advance two steps");
 
-    Move(testState, [6, 4], [5, 4]).make();
-    move = Move(testState, [5, 4], [3, 4]);
-    assert.ok(!move.isLegal(), "...but only from its original rank");
+    testState.makeMove(createMove([6, 4], [5, 4]));
+    move = createMove([5, 4], [3, 4]);
+    assert.ok(!rules.isLegal(move, testState), "...but only from its original rank");
 });
 
 QUnit.test( "a pawn may not advance two steps and capture at the same time",
@@ -399,8 +401,8 @@ QUnit.test( "a pawn may not advance two steps and capture at the same time",
         [[3, 3], [4, 3]]
     ]);
 
-    var move = Move(testState, [6, 4], [4, 3]);
-    assert.ok(!move.isLegal(),
+    var move = createMove([6, 4], [4, 3]);
+    assert.ok(!rules.isLegal(move, testState),
                 "pawn cannot advance two steps and capture at the same time");
 });
 
@@ -412,9 +414,9 @@ QUnit.test( "pawn en passant capture", function( assert ) {
         [[1, 3], [3, 3]],   // black pawn advanced two steps
     ]);
 
-    var move = Move(testState, [3, 4], [2, 3]);
-    assert.ok(move.isLegal(), "pawn can capture en passant");
-    move.make();
+    var move = createMove([3, 4], [2, 3]);
+    assert.ok(rules.isLegal(move, testState), "pawn can capture en passant");
+    testState.makeMove(move);
     assert.ok(testState.board[3][3] === EMPTY, "...and it took the pawn");
 });
 
@@ -428,8 +430,8 @@ QUnit.test( "can only en passant immediately afterwards", function( assert ) {
         [[3, 0], [4, 0]]    // two inconsequential moves
     ]);
 
-    var move = Move(testState, [3, 4], [2, 3]);
-    assert.ok(!move.isLegal(), "pawn missed its chance to capture en passant");
+    var move = createMove([3, 4], [2, 3]);
+    assert.ok(!rules.isLegal(move, testState), "pawn missed its chance to capture en passant");
 });
 
 // promotion
