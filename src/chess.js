@@ -43,18 +43,13 @@ var pieceRules = {
         }
     },
     pawn: {
-        moveIsLegal: function pawnMoveIsLegal(move, color, isCapture) {
-            var allowedDirection = color == 'white' ? -1 : +1;
+        moveIsLegal: function pawnMoveIsLegal(move) {
             var rd = move.rankDistance();
             var fd = move.fileDistance();
-            var oneSquareAdvance = rd == 1;
-            var twoSquareAdvance = rd == 2 &&
-                move.fromPos[0] == (color == 'white' ? 6 : 1);
-            var validCaptureMovement = fd == 1 && oneSquareAdvance;
-            var validNonCaptureMovement =
-                fd == 0 && (oneSquareAdvance || twoSquareAdvance);
-            return move.rankDirection() == allowedDirection &&
-                (isCapture ? validCaptureMovement : validNonCaptureMovement);
+            var validCaptureMovement = fd == 1 && rd == 1;
+            var validNonCaptureMovement = fd == 0 && (rd == 1 ||
+                rd == 2 && move.fromPos[0] == 6 || move.fromPos[0] == 1);
+            return validCaptureMovement || validNonCaptureMovement;
         },
         intermediatePositions: function pawnIntermediatePositions(move) {
             return move.staysInFile()
@@ -157,6 +152,10 @@ var createMove = function createMove(fromPos, toPos) {
     });
 };
 
+var pawnAdvanceDirection = function pawnAdvanceDirection(color) {
+    return { white: -1, black: +1 }[color];
+};
+
 var rules = {
     isLegal: function isLegal(move, state) {
         var fromPos = move.fromPos;
@@ -186,8 +185,19 @@ var rules = {
             return false;
         }
 
-        var isCapture = targetSquare != EMPTY;
-        return piece.moveIsLegal(move, color, isCapture);
+        if (piece.type == 'pawn') {
+            if (move.rankDirection() != pawnAdvanceDirection(color)) {
+                return false;
+            }
+            var isCapture = targetSquare != EMPTY;
+            var isCapturingMovement =
+                move.rankDistance() == 1 && move.fileDistance() == 1;
+            if (isCapture != isCapturingMovement) {
+                return false;
+            }
+        }
+
+        return piece.moveIsLegal(move);
     },
     isCastling: function isCastling(move, state) {
         var kingPos = move.fromPos;
