@@ -256,7 +256,7 @@ var oppositePlayer = function oppositePlayer(color) {
     return color === 'white' ? 'black' : 'white';
 };
 
-var createGameState = function createGameState(layout) {
+var createState = function createState(layout) {
     if (layout !== "chess" && layout !== "empty") {
         throw new Error("Unrecognized layout type '" + layout + "'");
     }
@@ -324,8 +324,8 @@ var createGameState = function createGameState(layout) {
         }
     };
 
-    var GameState = function GameState() {};
-    return extend(new GameState(), {
+    var State = function State() {};
+    return extend(new State(), {
         playerOnTurn: 'white',
 
         piecesMoved: piecesMoved,

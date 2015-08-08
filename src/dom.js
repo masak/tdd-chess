@@ -1,6 +1,6 @@
 'use strict';
 
-var gameState = createGameState('chess');
+var state = createState('chess');
 
 var initializeBoard = function() {
     var board = $('#board');
@@ -15,8 +15,8 @@ var initializeBoard = function() {
     }
 };
 
-var domUpdate = function(gameState) {
-    var player = gameState.playerOnTurn;
+var domUpdate = function(state) {
+    var player = state.playerOnTurn;
     var playerCapitalized = player.substring(0, 1).toUpperCase() + player.substring(1);
     var symbol = player === 'white' ? '&#9812;' : '&#9818;';
     $('#status').html(playerCapitalized + " " + symbol + " to move");
@@ -24,8 +24,8 @@ var domUpdate = function(gameState) {
     $('#board tr').each(function(i, row) {
         $(row).find('td').each(function(j, cell) {
             $(cell).removeClass("white black");
-            $(cell).html( gameState.board[i][j].symbol );
-            $(cell).addClass( gameState.board[i][j].color );
+            $(cell).html( state.board[i][j].symbol );
+            $(cell).addClass( state.board[i][j].color );
         });
     });
 };
@@ -47,7 +47,7 @@ var initializePlacementLogic = function() {
 
     $('#board').on('click', 'td', function(event) {
         var pos = posFromSquare($('#board'), event.target);
-        var friendlyPiece = gameState.board[pos[0]][pos[1]].color === gameState.playerOnTurn;
+        var friendlyPiece = state.board[pos[0]][pos[1]].color === state.playerOnTurn;
         if (selectedSquare && !friendlyPiece) {
             if (event.target === selectedSquare) {
                 return;
@@ -55,9 +55,9 @@ var initializePlacementLogic = function() {
             var fromPos = posFromSquare($('#board'), selectedSquare);
             var toPos = pos;
             var move = createMove(fromPos, toPos);
-            if (rules.isLegal(move, gameState)) {
-                gameState.makeMove(move);
-                domUpdate(gameState);
+            if (rules.isLegal(move, state)) {
+                state.makeMove(move);
+                domUpdate(state);
             }
             else {
                 $('#board').addClass('illegal-move');
