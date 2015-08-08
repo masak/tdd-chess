@@ -1,43 +1,5 @@
 'use strict';
 
-var rankDistance = function rankDistance(fromPos, toPos) {
-    return Math.abs(toPos[0] - fromPos[0]);
-};
-
-var fileDistance = function fileDistance(fromPos, toPos) {
-    return Math.abs(toPos[1] - fromPos[1]);
-};
-
-var sameRank = function sameRank(fromPos, toPos) {
-    return rankDistance(fromPos, toPos) === 0;
-};
-
-var sameFile = function sameFile(fromPos, toPos) {
-    return fileDistance(fromPos, toPos) === 0;
-};
-
-var rankDirection = function rankDirection(fromPos, toPos) {
-    return Math.sign(toPos[0] - fromPos[0]);
-};
-
-var fileDirection = function fileDirection(fromPos, toPos) {
-    return Math.sign(toPos[1] - fromPos[1]);
-};
-
-var lineOfSight = function lineOfSight(fromPos, toPos) {
-    var rd = rankDirection(fromPos, toPos);
-    var rf = fileDirection(fromPos, toPos);
-    var positions = [];
-    var rank = fromPos[0] + rd;
-    var file = fromPos[1] + rf;
-    while (rank !== toPos[0] || file !== toPos[1]) {
-        positions.push([rank, file]);
-        rank += rd;
-        file += rf;
-    }
-    return positions;
-};
-
 var pieceRules = {
     defaults: {
         moveIsLegal: function moveIsNeverLegalByDefault() {
@@ -48,63 +10,59 @@ var pieceRules = {
         }
     },
     rook: {
-        moveIsLegal: function rookMoveIsLegal(fromPos, toPos) {
-            return sameRank(fromPos, toPos) || sameFile(fromPos, toPos);
+        moveIsLegal: function rookMoveIsLegal(move) {
+            return move.staysInRank() || move.staysInFile();
         },
-        between: function rookBetween(fromPos, toPos) {
-            return this.moveIsLegal(fromPos, toPos)
-                ? lineOfSight(fromPos, toPos)
+        between: function rookBetween(move) {
+            return this.moveIsLegal(move)
+                ? move.lineOfSight()
                 : [];
         }
     },
     knight: {
-        moveIsLegal: function knightMoveIsLegal(fromPos, toPos) {
-            var rd = rankDistance(fromPos, toPos);
-            var fd = fileDistance(fromPos, toPos);
+        moveIsLegal: function knightMoveIsLegal(move) {
+            var rd = move.rankDistance();
+            var fd = move.fileDistance();
             return rd == 1 && fd == 2 || rd == 2 && fd == 1;
         }
     },
     bishop: {
-        moveIsLegal: function bishopMoveIsLegal(fromPos, toPos) {
-            var rd = rankDistance(fromPos, toPos);
-            var fd = fileDistance(fromPos, toPos);
-            return rd == fd;
+        moveIsLegal: function bishopMoveIsLegal(move) {
+            return move.rankDistance() == move.fileDistance();
         },
-        between: function bishopBetween(fromPos, toPos) {
-            return this.moveIsLegal(fromPos, toPos)
-                ? lineOfSight(fromPos, toPos)
+        between: function bishopBetween(move) {
+            return this.moveIsLegal(move)
+                ? move.lineOfSight()
                 : [];
         }
     },
     queen: {
-        moveIsLegal: function queenMoveIsLegal(fromPos, toPos) {
-            return pieceRules.rook.moveIsLegal(fromPos, toPos) ||
-                pieceRules.bishop.moveIsLegal(fromPos, toPos);
+        moveIsLegal: function queenMoveIsLegal(move) {
+            return pieceRules.rook.moveIsLegal(move) ||
+                pieceRules.bishop.moveIsLegal(move);
         },
-        between: function queenBetween(fromPos, toPos) {
-            return pieceRules.rook.between(fromPos, toPos).concat(
-                pieceRules.bishop.between(fromPos, toPos));
+        between: function queenBetween(move) {
+            return pieceRules.rook.between(move).concat(
+                pieceRules.bishop.between(move));
         }
     },
     king: {
-        moveIsLegal: function kingMoveIsLegal(fromPos, toPos) {
-            var rd = rankDistance(fromPos, toPos);
-            var fd = fileDistance(fromPos, toPos);
-            return rd <= 1 && fd <= 1;
+        moveIsLegal: function kingMoveIsLegal(move) {
+            return move.rankDistance() <= 1 && move.fileDistance() <= 1;
         }
     },
     pawn: {
-        moveIsLegal: function pawnMoveIsLegal(fromPos, toPos, color, isCapture) {
+        moveIsLegal: function pawnMoveIsLegal(move, color, isCapture) {
             var allowedDirection = color == 'white' ? -1 : +1;
-            var rd = rankDistance(fromPos, toPos);
-            var fd = fileDistance(fromPos, toPos);
+            var rd = move.rankDistance();
+            var fd = move.fileDistance();
             var oneSquareAdvance = rd == 1;
             var twoSquareAdvance = rd == 2 &&
-                fromPos[0] == (color == 'white' ? 6 : 1);
+                move.fromPos[0] == (color == 'white' ? 6 : 1);
             var validCaptureMovement = fd == 1 && oneSquareAdvance;
             var validNonCaptureMovement =
                 fd == 0 && (oneSquareAdvance || twoSquareAdvance);
-            return rankDirection(fromPos, toPos) == allowedDirection &&
+            return move.rankDirection() == allowedDirection &&
                 (isCapture ? validCaptureMovement : validNonCaptureMovement);
         }
     }
@@ -161,7 +119,45 @@ var createMove = function createMove(fromPos, toPos) {
 
     return extend(new Move(), {
         fromPos: fromPos,
-        toPos: toPos
+        toPos: toPos,
+
+        rankDistance: function rankDistance() {
+            return Math.abs(toPos[0] - fromPos[0]);
+        },
+
+        fileDistance: function fileDistance() {
+            return Math.abs(toPos[1] - fromPos[1]);
+        },
+
+        staysInRank: function staysInRank() {
+            return this.rankDistance(fromPos, toPos) === 0;
+        },
+
+        staysInFile: function staysInFile() {
+            return this.fileDistance(fromPos, toPos) === 0;
+        },
+
+        rankDirection: function rankDirection() {
+            return Math.sign(toPos[0] - fromPos[0]);
+        },
+
+        fileDirection: function fileDirection() {
+            return Math.sign(toPos[1] - fromPos[1]);
+        },
+
+        lineOfSight: function lineOfSight() {
+            var rd = this.rankDirection();
+            var rf = this.fileDirection();
+            var positions = [];
+            var rank = fromPos[0] + rd;
+            var file = fromPos[1] + rf;
+            while (rank !== toPos[0] || file !== toPos[1]) {
+                positions.push([rank, file]);
+                rank += rd;
+                file += rf;
+            }
+            return positions;
+        }
     });
 };
 
@@ -184,7 +180,7 @@ var rules = {
             return true;
         }
 
-        var squares = piece.between(fromPos, toPos);
+        var squares = piece.between(move);
         if (!state.allSquaresEmpty(squares)) {
             return false;
         }
@@ -195,7 +191,7 @@ var rules = {
         }
 
         var isCapture = targetSquare != EMPTY;
-        return piece.moveIsLegal(fromPos, toPos, color, isCapture);
+        return piece.moveIsLegal(move, color, isCapture);
     },
     isCastling: function isCastling(move, state) {
         var kingPos = move.fromPos;
@@ -213,7 +209,7 @@ var rules = {
         }
 
         var toPos = move.toPos;
-        var kingDirection = fileDirection(kingPos, toPos);
+        var kingDirection = move.fileDirection();
         var kingsOrQueens = kingDirection == 1 ? "king's" : "queen's";
         var playersRook = pieceName(playerOnTurn, 'rook');
         var rookAlreadyMoved = state.piecesMoved[kingsOrQueens + " " + playersRook];
@@ -228,7 +224,7 @@ var rules = {
 
         var rookFromFile = kingDirection == 1 ? 7 : 0;
         var rookFromPos = [rank, rookFromFile];
-        var squares = lineOfSight(rookFromPos, kingPos);
+        var squares = createMove(rookFromPos, kingPos).lineOfSight();
 
         return state.allSquaresEmpty(squares);
     },
