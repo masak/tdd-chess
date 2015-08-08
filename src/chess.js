@@ -2,21 +2,18 @@
 
 var pieceRules = {
     defaults: {
-        moveIsLegal: function moveIsNeverLegalByDefault() {
+        moveIsLegal: function moveIsNeverLegalByDefault(move) {
             return false;
         },
-        intermediatePositions: function noIntermediatePositionsByDefault() {
-            return [];
+        intermediatePositions: function lineOfSightByDefault(move) {
+            return this.moveIsLegal(move)
+                ? move.lineOfSight()
+                : [];
         }
     },
     rook: {
         moveIsLegal: function rookMoveIsLegal(move) {
             return move.staysInRank() || move.staysInFile();
-        },
-        intermediatePositions: function rookIntermediatePositions(move) {
-            return this.moveIsLegal(move)
-                ? move.lineOfSight()
-                : [];
         }
     },
     knight: {
@@ -24,27 +21,20 @@ var pieceRules = {
             var rd = move.rankDistance();
             var fd = move.fileDistance();
             return rd == 1 && fd == 2 || rd == 2 && fd == 1;
+        },
+        intermediatePositions: function knightHasNoIntermediatePositions() {
+            return [];
         }
     },
     bishop: {
         moveIsLegal: function bishopMoveIsLegal(move) {
             return move.rankDistance() == move.fileDistance();
-        },
-        intermediatePositions: function bishopIntermediatePositions(move) {
-            return this.moveIsLegal(move)
-                ? move.lineOfSight()
-                : [];
         }
     },
     queen: {
         moveIsLegal: function queenMoveIsLegal(move) {
             return pieceRules.rook.moveIsLegal(move) ||
                 pieceRules.bishop.moveIsLegal(move);
-        },
-        intermediatePositions: function queenIntermediatePositions(move) {
-            return this.moveIsLegal(move)
-                ? move.lineOfSight()
-                : [];
         }
     },
     king: {
@@ -65,6 +55,11 @@ var pieceRules = {
                 fd == 0 && (oneSquareAdvance || twoSquareAdvance);
             return move.rankDirection() == allowedDirection &&
                 (isCapture ? validCaptureMovement : validNonCaptureMovement);
+        },
+        intermediatePositions: function pawnIntermediatePositions(move) {
+            return move.staysInFile()
+                ? move.lineOfSight()
+                : [];
         }
     }
 };

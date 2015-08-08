@@ -408,6 +408,20 @@ QUnit.test( "a pawn may not advance two steps and capture at the same time",
                 "pawn cannot advance two steps and capture at the same time");
 });
 
+QUnit.test( "a pawn may not advance two steps through another piece",
+            function( assert ) {
+    var state = initializeWithMoves([
+        [[6, 0], [4, 0]],
+        [[1, 3], [2, 3]],   // open up for black bishop
+        [[6, 1], [4, 1]],
+        [[0, 3], [5, 7]]    // bishop moves in front of pawn
+    ]);
+
+    var move = createMove([6, 7], [4, 7]);
+    assert.ok(!rules.isLegal(move, state),
+                "pawn cannot move two steps through another piece");
+});
+
 QUnit.test( "pawn en passant capture", function( assert ) {
     var state = initializeWithMoves([
         [[6, 4], [4, 4]],
