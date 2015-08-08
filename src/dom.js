@@ -1,5 +1,7 @@
 'use strict';
 
+var gameState = createGameState('chess');
+
 var initializeBoard = function() {
     var board = $('#board');
     for (var rank = 0; rank < 8; rank++) {

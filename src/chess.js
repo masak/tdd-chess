@@ -252,57 +252,29 @@ var rules = {
     }
 };
 
-var gameState = {
-    playerOnTurn: 'white',
+var oppositePlayer = function oppositePlayer(color) {
+    return color === 'white' ? 'black' : 'white';
+};
 
-    piecesMoved: {
-    },
+var createGameState = function createGameState(layout) {
+    if (layout !== "chess" && layout !== "empty") {
+        throw new Error("Unrecognized layout type '" + layout + "'");
+    }
 
-    enPassant: {
-        isPossible: false,
-        capturePos: undefined
-    },
-
-    board: (function createBoard() {
-        var board = [];
-        for (var i = 0; i < 8; i++) {
-            var row = [];
-            for (var j = 0; j < 8; j++) {
-                row.push(EMPTY);
-            }
-            board.push(row);
+    var board = [];
+    for (var i = 0; i < 8; i++) {
+        var row = [];
+        for (var j = 0; j < 8; j++) {
+            row.push(EMPTY);
         }
+        board.push(row);
+    }
 
-        return board;
-    })(),
-
-    reset: function reset() {
-        this.playerOnTurn = 'white';
-        this.piecesMoved = {};
-
-        for (var i = 0; i < 8; i++) {
-            for (var j = 0; j < 8; j++) {
-                this.board[i][j] = EMPTY;
-            }
-        }
-    },
-
-    chess: function chess() {
-        this.playerOnTurn = 'white';
-        this.piecesMoved = {};
-
-        var br = BLACK_ROOK,
-            bn = BLACK_KNIGHT,
-            bb = BLACK_BISHOP,
-            bq = BLACK_QUEEN,
-            bk = BLACK_KING,
-            bp = BLACK_PAWN,
-            wr = WHITE_ROOK,
-            wn = WHITE_KNIGHT,
-            wb = WHITE_BISHOP,
-            wq = WHITE_QUEEN,
-            wk = WHITE_KING,
-            wp = WHITE_PAWN,
+    if (layout === "chess") {
+        var br = BLACK_ROOK, bn = BLACK_KNIGHT, bb = BLACK_BISHOP,
+            bq = BLACK_QUEEN, bk = BLACK_KING, bp = BLACK_PAWN,
+            wr = WHITE_ROOK, wn = WHITE_KNIGHT, wb = WHITE_BISHOP,
+            wq = WHITE_QUEEN, wk = WHITE_KING, wp = WHITE_PAWN,
             __ = EMPTY;
 
         var chessLayout = [
@@ -317,95 +289,94 @@ var gameState = {
         ];
 
         for (var row in chessLayout) {
-            this.board[row] = chessLayout[row];
+            board[row] = chessLayout[row];
         }
-    },
-
-    makeMove: function makeMove(move) {
-        // allow two position arguments to auto-coerce to a move
-        if (arguments.length == 2
-            && arguments[0] instanceof Array
-            && arguments[0].length == 2
-            && arguments[1] instanceof Array
-            && arguments[1].length == 2) {
-
-            move = createMove(arguments[0], arguments[1]);
-        }
-
-        var movePieceOnBoard = function movePieceOnBoard(move) {
-            var fromPos = move.fromPos;
-            var toPos = move.toPos;
-            var fromRank = fromPos[0],
-                fromFile = fromPos[1],
-                toRank   = toPos[0],
-                toFile   = toPos[1];
-            this.board[toRank][toFile] = this.board[fromRank][fromFile];
-            this.board[fromRank][fromFile] = EMPTY;
-        }.bind(this);
-
-        var markPieceMoved = function markPieceMoved(pos) {
-            var rank = pos[0];
-            var file = pos[1];
-            var piece = this.board[rank][file];
-            if (piece.type === 'king') {
-                this.piecesMoved[piece.name] = true;
-            }
-            else if (piece.type === 'rook') {
-                if (rank !== 0 && rank !== 7) {
-                    return;
-                }
-                var kingsOrQueens = file === 0 ? "queen's" :
-                                    file === 7 ? "king's"  :
-                                                undefined;
-                if (!kingsOrQueens) {
-                    return;
-                }
-                this.piecesMoved[kingsOrQueens + " " + piece.name] = true;
-            }
-        }.bind(this);
-
-        var oppositePlayer = function oppositePlayer(color) {
-            return color === 'white' ? 'black' : 'white';
-        };
-
-        if (rules.isCastling(move, this)) {
-            var rank = move.fromPos[0];
-            var rookFromFile = move.toPos[1] > move.fromPos[1] ? 7 : 0;
-            var rookToFile = move.toPos[1] > move.fromPos[1] ? 5 : 3;
-            var rookFromPos = [rank, rookFromFile];
-            var rookToPos = [rank, rookToFile];
-
-            movePieceOnBoard(createMove(rookFromPos, rookToPos));
-        }
-        markPieceMoved(move.fromPos);
-
-        if (rules.isEnPassant(move, this)) {
-            var pawnRank = this.enPassant.pawnPos[0],
-                pawnFile = this.enPassant.pawnPos[1];
-            this.board[pawnRank][pawnFile] = EMPTY;
-        }
-        if (rules.isPawnDoubleAdvance(move, this)) {
-            this.enPassant.isPossible = true;
-            this.enPassant.pawnPos = move.toPos;
-            var piece = this.board[ move.fromPos[0] ][ move.fromPos[1] ];
-            var delta = piece.color === 'white' ? +1 : -1;
-            this.enPassant.capturePos = [move.toPos[0] + delta, move.toPos[1]];
-        }
-        else {
-            this.enPassant.isPossible = false;
-        }
-
-        movePieceOnBoard(move);
-        this.playerOnTurn = oppositePlayer(this.playerOnTurn);
-    },
-
-    clone: function clone() {
-        var newState = JSON.parse(JSON.stringify(this));
-        var methods = ['reset', 'chess', 'makeMove'];
-        for (var i in methods) {
-            var method = methods[i];
-            newState[method] = this[method];
-        }
-        return newState;
     }
+
+    var movePieceOnBoard = function movePieceOnBoard(move) {
+        var fromPos = move.fromPos;
+        var toPos = move.toPos;
+        var fromRank = fromPos[0],
+            fromFile = fromPos[1],
+            toRank   = toPos[0],
+            toFile   = toPos[1];
+        board[toRank][toFile] = board[fromRank][fromFile];
+        board[fromRank][fromFile] = EMPTY;
+    };
+
+    var piecesMoved = {};
+    var markPieceMoved = function markPieceMoved(pos) {
+        var rank = pos[0];
+        var file = pos[1];
+        var piece = board[rank][file];
+        piecesMoved[piece.name] = true;
+        if (piece.type === 'rook') {
+            if (rank !== 0 && rank !== 7) {
+                return;
+            }
+            var kingsOrQueens = file === 0 ? "queen's" :
+                                file === 7 ? "king's"  :
+                                            undefined;
+            if (!kingsOrQueens) {
+                return;
+            }
+            piecesMoved[kingsOrQueens + " " + piece.name] = true;
+        }
+    };
+
+    var GameState = function GameState() {};
+    return extend(new GameState(), {
+        playerOnTurn: 'white',
+
+        piecesMoved: piecesMoved,
+
+        enPassant: {
+            isPossible: false,
+            capturePos: undefined
+        },
+
+        board: board,
+
+        makeMove: function makeMove(move) {
+            // allow two position arguments to auto-coerce to a move
+            if (arguments.length == 2
+                && arguments[0] instanceof Array
+                && arguments[0].length == 2
+                && arguments[1] instanceof Array
+                && arguments[1].length == 2) {
+
+                move = createMove(arguments[0], arguments[1]);
+            }
+
+            if (rules.isCastling(move, this)) {
+                var rank = move.fromPos[0];
+                var rookFromFile = move.toPos[1] > move.fromPos[1] ? 7 : 0;
+                var rookToFile = move.toPos[1] > move.fromPos[1] ? 5 : 3;
+                var rookFromPos = [rank, rookFromFile];
+                var rookToPos = [rank, rookToFile];
+
+                movePieceOnBoard(createMove(rookFromPos, rookToPos));
+            }
+            markPieceMoved(move.fromPos);
+
+            if (rules.isEnPassant(move, this)) {
+                var pawnRank = this.enPassant.pawnPos[0],
+                    pawnFile = this.enPassant.pawnPos[1];
+                this.board[pawnRank][pawnFile] = EMPTY;
+            }
+            if (rules.isPawnDoubleAdvance(move, this)) {
+                this.enPassant.isPossible = true;
+                this.enPassant.pawnPos = move.toPos;
+                var piece = this.board[ move.fromPos[0] ][ move.fromPos[1] ];
+                var delta = piece.color === 'white' ? +1 : -1;
+                this.enPassant.capturePos = [move.toPos[0] + delta, move.toPos[1]];
+            }
+            else {
+                this.enPassant.isPossible = false;
+            }
+
+            movePieceOnBoard(move);
+            this.playerOnTurn = oppositePlayer(this.playerOnTurn);
+        }
+    });
 };
