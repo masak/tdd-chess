@@ -5,7 +5,7 @@ var pieceRules = {
         moveIsLegal: function moveIsNeverLegalByDefault() {
             return false;
         },
-        between: function noPiecesBetweenByDefault() {
+        intermediatePositions: function noIntermediatePositionsByDefault() {
             return [];
         }
     },
@@ -13,7 +13,7 @@ var pieceRules = {
         moveIsLegal: function rookMoveIsLegal(move) {
             return move.staysInRank() || move.staysInFile();
         },
-        between: function rookBetween(move) {
+        intermediatePositions: function rookIntermediatePositions(move) {
             return this.moveIsLegal(move)
                 ? move.lineOfSight()
                 : [];
@@ -30,7 +30,7 @@ var pieceRules = {
         moveIsLegal: function bishopMoveIsLegal(move) {
             return move.rankDistance() == move.fileDistance();
         },
-        between: function bishopBetween(move) {
+        intermediatePositions: function bishopIntermediatePositions(move) {
             return this.moveIsLegal(move)
                 ? move.lineOfSight()
                 : [];
@@ -41,9 +41,10 @@ var pieceRules = {
             return pieceRules.rook.moveIsLegal(move) ||
                 pieceRules.bishop.moveIsLegal(move);
         },
-        between: function queenBetween(move) {
-            return pieceRules.rook.between(move).concat(
-                pieceRules.bishop.between(move));
+        intermediatePositions: function queenIntermediatePositions(move) {
+            return this.moveIsLegal(move)
+                ? move.lineOfSight()
+                : [];
         }
     },
     king: {
@@ -180,7 +181,7 @@ var rules = {
             return true;
         }
 
-        var squares = piece.between(move);
+        var squares = piece.intermediatePositions(move);
         if (!state.allSquaresEmpty(squares)) {
             return false;
         }
