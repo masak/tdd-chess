@@ -129,7 +129,8 @@ var extend = function extend(target /*, sources */) {
 var createPiece = function createPiece(color, type) {
     var Piece = function Piece() {};
     var names = ['king', 'queen', 'rook', 'bishop', 'knight', 'pawn'];
-    var codepoint = 9818 + names.indexOf(type);
+    var index = names.indexOf(type);
+    var codepoint = index != -1 ? 9818 + names.indexOf(type) : 32;
 
     return extend(new Piece(), pieceRules.defaults, pieceRules[type], {
         color: color,
@@ -153,12 +154,7 @@ var BLACK_QUEEN = createPiece('black', 'queen');
 var BLACK_KING = createPiece('black', 'king');
 var BLACK_PAWN = createPiece('black', 'pawn');
 
-var EMPTY = {
-    color: "none",
-    type: "empty square",
-    name: "empty square",
-    symbol: ""
-};
+var EMPTY = createPiece('none', 'none');
 
 var createMove = function createMove(fromPos, toPos) {
     var Move = function Move() {};
