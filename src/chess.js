@@ -256,6 +256,11 @@ var oppositePlayer = function oppositePlayer(color) {
     return color === 'white' ? 'black' : 'white';
 };
 
+var isPosition = function isPosition(pos) {
+    return pos instanceof Array && pos.length == 2 &&
+        typeof pos[0] === "number" && typeof pos[1] === "number";
+};
+
 var createState = function createState(layout) {
     var i, j;
 
@@ -297,31 +302,26 @@ var createState = function createState(layout) {
         board[rank][file] = EMPTY;
     };
 
+    var piecesMoved = {};
+
+    var pieceAt = function pieceAt(pos) {
+        return board[pos[0]][pos[1]];
+    };
+
     var movePiece = function movePiece(move) {
         var fromRank = move.fromPos[0],
             fromFile = move.fromPos[1],
             toRank   = move.toPos[0],
             toFile   = move.toPos[1];
-        board[toRank][toFile] = board[fromRank][fromFile];
+        var piece = pieceAt(move.fromPos);
+        board[toRank][toFile] = piece;
         removePiece(move.fromPos);
-    };
 
-    var piecesMoved = {};
-    var markPieceMoved = function markPieceMoved(pos) {
-        var rank = pos[0];
-        var file = pos[1];
-        var piece = board[rank][file];
         piecesMoved[piece.name] = true;
-        if (piece.type === 'rook') {
-            if (rank !== 0 && rank !== 7) {
-                return;
-            }
-            var kingsOrQueens = file === 0 ? "queen's" :
-                                file === 7 ? "king's"  :
-                                            undefined;
-            if (!kingsOrQueens) {
-                return;
-            }
+        var firstOrLastRank = fromRank == 0 || fromRank == 7;
+        var firstOrLastFile = fromFile == 0 || fromFile == 7;
+        if (piece.type === 'rook' && firstOrLastRank && firstOrLastFile) {
+            var kingsOrQueens = fromFile === 0 ? "queen's" :  "king's";
             piecesMoved[kingsOrQueens + " " + piece.name] = true;
         }
     };
@@ -336,9 +336,7 @@ var createState = function createState(layout) {
 
         board: board,
 
-        pieceAt: function pieceAt(pos) {
-            return board[pos[0]][pos[1]];
-        },
+        pieceAt: pieceAt,
 
         allSquaresEmpty: function allSquaresEmpty(positions) {
             return positions.every(function (pos) {
@@ -347,23 +345,12 @@ var createState = function createState(layout) {
         },
 
         makeMove: function makeMove(fromPos, toPos) {
-            // allow two position arguments to auto-coerce to a move
-            var move;
-            if (fromPos instanceof Array &&
-                    fromPos.length == 2 &&
-                    toPos instanceof Array &&
-                    toPos.length == 2) {
-                move = createMove(fromPos, toPos);
-            } else {
-                move = fromPos; // it wasn't a pos, so it's a move
-                fromPos = move.fromPos;
-                toPos = move.toPos;
-            }
+            var needsCoercion = isPosition(fromPos) && isPosition(toPos),
+                move = needsCoercion ? createMove(fromPos, toPos) : fromPos;
 
             if (rules.isCastling(move, this)) {
                 movePiece(move.rooksMove());
             }
-            markPieceMoved(move.fromPos);
 
             if (rules.isEnPassant(move, this)) {
                 removePiece(this.previousMove.toPos);
