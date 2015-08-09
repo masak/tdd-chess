@@ -346,6 +346,8 @@ var createMove, rules, createState, WHITE_ROOK, WHITE_KNIGHT, WHITE_BISHOP,
                 movePiece(move);
                 this.playerOnTurn = player[this.playerOnTurn].opponent;
                 this.previousMove = move;
+
+                return this;
             }
         });
     };
