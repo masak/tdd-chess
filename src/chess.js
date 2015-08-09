@@ -218,14 +218,16 @@ var rules = {
             state.pathIsClear(rookFromPos, kingPos);
     },
     isEnPassant: function isEnPassant(move, state) {
-        var piece = state.pieceAt(move.fromPos);
-        var previousMove = state.previousMove;
-        var offset = player[piece.color].pawnAdvanceDirection;
-        return piece.type === 'pawn' &&
-            previousMove &&
-            previousMove.rankDistance() === 2 &&
-            previousMove.toPos[0] + offset === move.toPos[0] &&
-            previousMove.toPos[1] === move.toPos[1];
+        var piece = state.pieceAt(move.fromPos),
+            previousMove = state.previousMove,
+            offset = player[piece.color].pawnAdvanceDirection,
+            pawnJustDoubleAdvanced =
+                previousMove &&
+                previousMove.rankDistance() === 2 &&
+                previousMove.toPos[0] + offset === move.toPos[0] &&
+                previousMove.toPos[1] === move.toPos[1];
+
+        return piece.type === 'pawn' && pawnJustDoubleAdvanced;
     }
 };
 
