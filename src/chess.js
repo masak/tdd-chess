@@ -1,7 +1,18 @@
 'use strict';
 
-var pawnAdvanceDirection = function pawnAdvanceDirection(color) {
-    return { white: -1, black: +1 }[color];
+var player = {
+    white: {
+        homeRank: 7,
+        pawnRank: 6,
+        pawnAdvanceDirection: -1,
+        opponent: 'black'
+    },
+    black: {
+        homeRank: 0,
+        pawnRank: 1,
+        pawnAdvanceDirection: +1,
+        opponent: 'white'
+    }
 };
 
 var pieceRules = {
@@ -53,7 +64,8 @@ var pieceRules = {
                 fd = move.fileDistance(),
                 validCaptureMovement = fd == 1 && rd == 1,
                 validNonCaptureMovement = fd == 0 && (rd == 1 ||
-                (rd == 2 && (move.fromPos[0] == 6 || move.fromPos[0] == 1)));
+                (rd == 2 && (move.fromPos[0] == player.white.pawnRank ||
+                             move.fromPos[0] == player.black.pawnRank)));
             return validCaptureMovement || validNonCaptureMovement;
         },
         pawnCheck: function pawnCheck(move, state) {
@@ -62,7 +74,8 @@ var pieceRules = {
                 captures = !state.emptyPosAt(toPos),
                 pawnMovesToCapture = move.rankDistance() == 1
                     && move.fileDistance() == 1;
-            return move.rankDirection() == pawnAdvanceDirection(color) &&
+            return move.rankDirection() ==
+                player[color].pawnAdvanceDirection &&
                 captures == pawnMovesToCapture;
         }
     }
@@ -73,9 +86,9 @@ var pieceName = function pieceName(color, type) {
 };
 
 var extend = function extend(target) { // extend(target, ...sources)
-    var i, source, prop;
+    var i, prop;
     for (i = 1; i < arguments.length; i++) {
-        source = arguments[i];
+        var source = arguments[i];
         for (prop in source) {
             if (source.hasOwnProperty(prop)) {
                 target[prop] = source[prop];
@@ -185,44 +198,33 @@ var rules = {
             isCastlingOrEnPassantOrNormal;
     },
     isCastling: function isCastling(move, state) {
-        var kingPos = move.fromPos;
-        var piece = state.pieceAt(kingPos);
-        var pieceIsKing = piece.type === 'king';
-        if (!pieceIsKing) {
-            return false;
-        }
+        var kingPos = move.fromPos,
+            piece = state.pieceAt(kingPos),
+            pieceIsKing = piece.type === 'king',
+            playerOnTurn = state.playerOnTurn,
+            playersKing = pieceName(playerOnTurn, 'king'),
+            kingAlreadyMoved = state.piecesMoved[playersKing],
+            toPos = move.toPos,
+            kingDirection = move.fileDirection(),
+            kingsOrQueens = kingDirection == 1 ? "king's" : "queen's",
+            playersRook = pieceName(playerOnTurn, 'rook'),
+            rookName = kingsOrQueens + " " + playersRook,
+            rookAlreadyMoved = state.piecesMoved[rookName],
+            rank = kingPos[0],
+            rookFromFile = kingDirection == 1 ? 7 : 0,
+            rookFromPos = [rank, rookFromFile];
 
-        var playerOnTurn = state.playerOnTurn;
-        var playersKing = pieceName(playerOnTurn, 'king');
-        var kingAlreadyMoved = state.piecesMoved[playersKing];
-        if (kingAlreadyMoved) {
-            return false;
-        }
-
-        var toPos = move.toPos;
-        var kingDirection = move.fileDirection();
-        var kingsOrQueens = kingDirection == 1 ? "king's" : "queen's";
-        var playersRook = pieceName(playerOnTurn, 'rook');
-        var rookName = kingsOrQueens + " " + playersRook;
-        var rookAlreadyMoved = state.piecesMoved[rookName];
-        if (rookAlreadyMoved) {
-            return false;
-        }
-
-        var rank = kingPos[0];
-        if (rank !== 0 && rank !== 7) {
-            return false;
-        }
-
-        var rookFromFile = kingDirection == 1 ? 7 : 0;
-        var rookFromPos = [rank, rookFromFile];
-
-        return state.pathIsClear(createMove(rookFromPos, kingPos));
+        return pieceIsKing &&
+            !kingAlreadyMoved &&
+            !rookAlreadyMoved &&
+            rank === player[piece.color].homeRank &&
+            state.pieceAt(rookFromPos).type == 'rook' &&
+            state.pathIsClear(createMove(rookFromPos, kingPos));
     },
     isEnPassant: function isEnPassant(move, state) {
         var piece = state.pieceAt(move.fromPos);
         var previousMove = state.previousMove;
-        var offset = pawnAdvanceDirection(piece.color);
+        var offset = player[piece.color].pawnAdvanceDirection;
         return piece.type === 'pawn' &&
             previousMove &&
             previousMove.rankDistance() === 2 &&
@@ -300,13 +302,13 @@ var createState = function createState(layout) {
         board[toRank][toFile] = piece;
         removePiece(move.fromPos);
 
-        piecesMoved[piece.name] = true;
-        var firstOrLastRank = fromRank == 0 || fromRank == 7;
-        var firstOrLastFile = fromFile == 0 || fromFile == 7;
-        if (piece.type === 'rook' && firstOrLastRank && firstOrLastFile) {
-            var kingsOrQueens = fromFile === 0 ? "queen's" :  "king's";
-            piecesMoved[kingsOrQueens + " " + piece.name] = true;
-        }
+        var kingsOrQueens = {
+            "0;0": "queen's ",
+            "7;0": "queen's ",
+            "0;7": "king's ",
+            "7;7": "king's "
+        }[fromRank + ";" + fromFile] || "";
+        piecesMoved[kingsOrQueens + piece.name] = true;
     };
 
     var State = function State() {};
