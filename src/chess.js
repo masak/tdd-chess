@@ -1,5 +1,9 @@
 'use strict';
 
+var pawnAdvanceDirection = function pawnAdvanceDirection(color) {
+    return { white: -1, black: +1 }[color];
+};
+
 var pieceRules = {
     defaults: {
         moveIsLegal: function moveIsNeverLegalByDefault(move) {
@@ -7,6 +11,9 @@ var pieceRules = {
         },
         path: function lineOfSightByDefault(move) {
             return move.lineOfSight();
+        },
+        pawnCheck: function pawnCheckIsTrueByDefault(move, state) {
+            return true;
         }
     },
     rook: {
@@ -48,6 +55,15 @@ var pieceRules = {
                 validNonCaptureMovement = fd == 0 && (rd == 1 ||
                 (rd == 2 && (move.fromPos[0] == 6 || move.fromPos[0] == 1)));
             return validCaptureMovement || validNonCaptureMovement;
+        },
+        pawnCheck: function pawnCheck(move, state) {
+            var toPos = move.toPos,
+                color = state.pieceAt(move.fromPos).color,
+                captures = !state.emptyPosAt(toPos),
+                pawnMovesToCapture = move.rankDistance() == 1
+                    && move.fileDistance() == 1;
+            return move.rankDirection() == pawnAdvanceDirection(color) &&
+                captures == pawnMovesToCapture;
         }
     }
 };
@@ -153,54 +169,20 @@ var createMove = function createMove(fromPos, toPos) {
     });
 };
 
-var pawnAdvanceDirection = function pawnAdvanceDirection(color) {
-    return { white: -1, black: +1 }[color];
-};
-
 var rules = {
     isLegal: function isLegal(move, state) {
-        var fromPos = move.fromPos,
-            toPos = move.toPos,
-            piece = state.pieceAt(fromPos),
-            color = piece.color;
+        var piece = state.pieceAt(move.fromPos),
+            isNormalMove = piece.moveIsLegal(move) &&
+                 state.pathIsClear(move) &&
+                 state.pieceAt(move.toPos).color != piece.color &&
+                 piece.pawnCheck(move, state),
+            isCastlingOrEnPassantOrNormal =
+                this.isCastling(move, state) ||
+                this.isEnPassant(move, state) ||
+                isNormalMove;
 
-        if (color != state.playerOnTurn) {
-            return false;
-        }
-
-        if (this.isCastling(move, state)) {
-            return true;
-        }
-
-        if (this.isEnPassant(move, state)) {
-            return true;
-        }
-
-        if (!piece.moveIsLegal(move)) {
-            return false;
-        }
-
-        if (!state.pathIsClear(move)) {
-            return false;
-        }
-
-        if (state.pieceAt(toPos).color == color) {
-            return false;
-        }
-
-        if (piece.type == 'pawn') {
-            if (move.rankDirection() != pawnAdvanceDirection(color)) {
-                return false;
-            }
-            var isCapture = targetSquare != EMPTY;
-            var isCapturingMovement =
-                move.rankDistance() == 1 && move.fileDistance() == 1;
-            if (isCapture != isCapturingMovement) {
-                return false;
-            }
-        }
-
-        return true;
+        return piece.color == state.playerOnTurn &&
+            isCastlingOrEnPassantOrNormal;
     },
     isCastling: function isCastling(move, state) {
         var kingPos = move.fromPos;
@@ -305,6 +287,10 @@ var createState = function createState(layout) {
         return board[pos[0]][pos[1]];
     };
 
+    var emptyPosAt = function emptyPosAt(pos) {
+        return pieceAt(pos) == EMPTY;
+    };
+
     var movePiece = function movePiece(move) {
         var fromRank = move.fromPos[0],
             fromFile = move.fromPos[1],
@@ -335,11 +321,11 @@ var createState = function createState(layout) {
 
         pieceAt: pieceAt,
 
+        emptyPosAt: emptyPosAt,
+
         pathIsClear: function pathIsClear(move) {
             var piece = this.pieceAt(move.fromPos);
-            return piece.path(move).every(function (pos) {
-                return pieceAt(pos) === EMPTY;
-            });
+            return piece.path(move).every(emptyPosAt);
         },
 
         makeMove: function makeMove(fromPos, toPos) {
