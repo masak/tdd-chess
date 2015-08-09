@@ -140,6 +140,15 @@ var createMove = function createMove(fromPos, toPos) {
                 file += Math.sign(toPos[1] - file);
             }
             return positions;
+        },
+
+        // this function only makes sense to call if the move is a castling move
+        rooksMove: function rooksMove() {
+            var rank = fromPos[0],
+                kingsSide = toPos[1] > fromPos[1],
+                rookFromPos = [rank, kingsSide ? 7 : 0],
+                rookToPos = [rank, kingsSide ? 5 : 3];
+            return createMove(rookFromPos, rookToPos);
         }
     });
 };
@@ -296,13 +305,13 @@ var createState = function createState(layout) {
         board[rank][file] = EMPTY;
     };
 
-    var movePiece = function movePiece(fromPos, toPos) {
-        var fromRank = fromPos[0],
-            fromFile = fromPos[1],
-            toRank   = toPos[0],
-            toFile   = toPos[1];
+    var movePiece = function movePiece(move) {
+        var fromRank = move.fromPos[0],
+            fromFile = move.fromPos[1],
+            toRank   = move.toPos[0],
+            toFile   = move.toPos[1];
         board[toRank][toFile] = board[fromRank][fromFile];
-        removePiece(fromPos);
+        removePiece(move.fromPos);
     };
 
     var piecesMoved = {};
@@ -363,13 +372,7 @@ var createState = function createState(layout) {
             }
 
             if (rules.isCastling(move, this)) {
-                var rank = move.fromPos[0];
-                var rookFromFile = move.toPos[1] > move.fromPos[1] ? 7 : 0;
-                var rookToFile = move.toPos[1] > move.fromPos[1] ? 5 : 3;
-                var rookFromPos = [rank, rookFromFile];
-                var rookToPos = [rank, rookToFile];
-
-                movePiece(rookFromPos, rookToPos);
+                movePiece(move.rooksMove());
             }
             markPieceMoved(move.fromPos);
 
@@ -387,7 +390,7 @@ var createState = function createState(layout) {
                 this.enPassant.isPossible = false;
             }
 
-            movePiece(fromPos, toPos);
+            movePiece(move);
             this.playerOnTurn = oppositePlayer(this.playerOnTurn);
         }
     });
