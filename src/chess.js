@@ -241,22 +241,14 @@ var rules = {
         return state.allSquaresEmpty(squares);
     },
     isEnPassant: function isEnPassant(move, state) {
-        var enPassant = state.enPassant;
-        var fromPos = move.fromPos;
-        var toPos = move.toPos;
-        var piece = state.pieceAt(fromPos);
+        var piece = state.pieceAt(move.fromPos);
+        var previousMove = state.previousMove;
+        var offset = pawnAdvanceDirection(piece.color);
         return piece.type === 'pawn' &&
-            enPassant.isPossible &&
-            enPassant.capturePos &&
-            enPassant.capturePos[0] === toPos[0] &&
-            enPassant.capturePos[1] === toPos[1];
-    },
-    isPawnDoubleAdvance: function isPawnDoubleAdvance(move, state) {
-        var fromPos = move.fromPos;
-        var toPos = move.toPos;
-        var piece = state.pieceAt(fromPos);
-        var ranksMoved = Math.abs(toPos[0] - fromPos[0]);
-        return piece.type === 'pawn' && ranksMoved == 2;
+            previousMove &&
+            previousMove.rankDistance() === 2 &&
+            previousMove.toPos[0] + offset === move.toPos[0] &&
+            previousMove.toPos[1] === move.toPos[1];
     }
 };
 
@@ -340,10 +332,7 @@ var createState = function createState(layout) {
 
         piecesMoved: piecesMoved,
 
-        enPassant: {
-            isPossible: false,
-            capturePos: undefined
-        },
+        previousMove: undefined,
 
         board: board,
 
@@ -377,21 +366,12 @@ var createState = function createState(layout) {
             markPieceMoved(move.fromPos);
 
             if (rules.isEnPassant(move, this)) {
-                removePiece(this.enPassant.pawnPos);
-            }
-            if (rules.isPawnDoubleAdvance(move, this)) {
-                this.enPassant.isPossible = true;
-                this.enPassant.pawnPos = move.toPos;
-                var piece = this.pieceAt(move.fromPos);
-                var delta = piece.color === 'white' ? +1 : -1;
-                this.enPassant.capturePos =
-                    [move.toPos[0] + delta, move.toPos[1]];
-            } else {
-                this.enPassant.isPossible = false;
+                removePiece(this.previousMove.toPos);
             }
 
             movePiece(move);
             this.playerOnTurn = oppositePlayer(this.playerOnTurn);
+            this.previousMove = move;
         }
     });
 };
