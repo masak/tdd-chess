@@ -20,7 +20,7 @@ var pieceRules = {
         moveIsLegal: function knightMoveIsLegal(move) {
             var rd = move.rankDistance();
             var fd = move.fileDistance();
-            return rd == 1 && fd == 2 || rd == 2 && fd == 1;
+            return (rd == 1 && fd == 2) || (rd == 2 && fd == 1);
         },
         intermediatePositions: function knightHasNoIntermediatePositions() {
             return [];
@@ -44,11 +44,11 @@ var pieceRules = {
     },
     pawn: {
         moveIsLegal: function pawnMoveIsLegal(move) {
-            var rd = move.rankDistance();
-            var fd = move.fileDistance();
-            var validCaptureMovement = fd == 1 && rd == 1;
-            var validNonCaptureMovement = fd == 0 && (rd == 1 ||
-                rd == 2 && move.fromPos[0] == 6 || move.fromPos[0] == 1);
+            var rd = move.rankDistance(),
+                fd = move.fileDistance(),
+                validCaptureMovement = fd == 1 && rd == 1,
+                validNonCaptureMovement = fd == 0 && (rd == 1 ||
+                (rd == 2 && (move.fromPos[0] == 6 || move.fromPos[0] == 1)));
             return validCaptureMovement || validNonCaptureMovement;
         },
         intermediatePositions: function pawnIntermediatePositions(move) {
@@ -63,10 +63,11 @@ var pieceName = function pieceName(color, type) {
     return color + " " + type;
 };
 
-var extend = function extend(target /*, sources */) {
-    for (var i = 1; i < arguments.length; i++) {
-        var source = arguments[i];
-        for (var prop in source) {
+var extend = function extend(target) { // extend(target, ...sources)
+    var i, source, prop;
+    for (i = 1; i < arguments.length; i++) {
+        source = arguments[i];
+        for (prop in source) {
             if (source.hasOwnProperty(prop)) {
                 target[prop] = source[prop];
             }
@@ -218,7 +219,8 @@ var rules = {
         var kingDirection = move.fileDirection();
         var kingsOrQueens = kingDirection == 1 ? "king's" : "queen's";
         var playersRook = pieceName(playerOnTurn, 'rook');
-        var rookAlreadyMoved = state.piecesMoved[kingsOrQueens + " " + playersRook];
+        var rookName = kingsOrQueens + " " + playersRook;
+        var rookAlreadyMoved = state.piecesMoved[rookName];
         if (rookAlreadyMoved) {
             return false;
         }
@@ -259,14 +261,16 @@ var oppositePlayer = function oppositePlayer(color) {
 };
 
 var createState = function createState(layout) {
+    var i, j;
+
     if (layout !== "chess" && layout !== "empty") {
         throw new Error("Unrecognized layout type '" + layout + "'");
     }
 
     var board = [];
-    for (var i = 0; i < 8; i++) {
+    for (i = 0; i < 8; i++) {
         var row = [];
-        for (var j = 0; j < 8; j++) {
+        for (j = 0; j < 8; j++) {
             row.push(EMPTY);
         }
         board.push(row);
@@ -290,8 +294,8 @@ var createState = function createState(layout) {
             [wr, wn, wb, wq, wk, wb, wn, wr]
         ];
 
-        for (var row in chessLayout) {
-            board[row] = chessLayout[row];
+        for (i = 0; i < chessLayout.length; i++) {
+            board[i] = chessLayout[i];
         }
     }
 
@@ -340,24 +344,25 @@ var createState = function createState(layout) {
         board: board,
 
         pieceAt: function pieceAt(pos) {
-            return board[ pos[0] ][ pos[1] ];
+            return board[pos[0]][pos[1]];
         },
 
         allSquaresEmpty: function allSquaresEmpty(positions) {
-            return positions.every(function(pos) {
+            return positions.every(function (pos) {
                 return this.pieceAt(pos) === EMPTY;
             }.bind(this));
         },
 
-        makeMove: function makeMove(move) {
+        makeMove: function makeMove(fromPos, toPos) {
             // allow two position arguments to auto-coerce to a move
-            if (arguments.length == 2
-                && arguments[0] instanceof Array
-                && arguments[0].length == 2
-                && arguments[1] instanceof Array
-                && arguments[1].length == 2) {
-
-                move = createMove(arguments[0], arguments[1]);
+            var move;
+            if (fromPos instanceof Array &&
+                    fromPos.length == 2 &&
+                    toPos instanceof Array &&
+                    toPos.length == 2) {
+                move = createMove(fromPos, toPos);
+            } else {
+                move = fromPos;
             }
 
             if (rules.isCastling(move, this)) {
@@ -379,11 +384,11 @@ var createState = function createState(layout) {
             if (rules.isPawnDoubleAdvance(move, this)) {
                 this.enPassant.isPossible = true;
                 this.enPassant.pawnPos = move.toPos;
-                var piece = this.pieceAt( move.fromPos );
+                var piece = this.pieceAt(move.fromPos);
                 var delta = piece.color === 'white' ? +1 : -1;
-                this.enPassant.capturePos = [move.toPos[0] + delta, move.toPos[1]];
-            }
-            else {
+                this.enPassant.capturePos =
+                    [move.toPos[0] + delta, move.toPos[1]];
+            } else {
                 this.enPassant.isPossible = false;
             }
 
