@@ -5,7 +5,7 @@ var pieceRules = {
         moveIsLegal: function moveIsNeverLegalByDefault(move) {
             return false;
         },
-        intermediatePositions: function lineOfSightByDefault(move) {
+        path: function lineOfSightByDefault(move) {
             return move.lineOfSight();
         }
     },
@@ -20,7 +20,7 @@ var pieceRules = {
             var fd = move.fileDistance();
             return (rd == 1 && fd == 2) || (rd == 2 && fd == 1);
         },
-        intermediatePositions: function knightHasNoIntermediatePositions() {
+        path: function knightPathIsEmpty() {
             return [];
         }
     },
@@ -180,13 +180,11 @@ var rules = {
             return false;
         }
 
-        var squares = piece.intermediatePositions(move);
-        if (!state.allSquaresEmpty(squares)) {
+        if (!state.pathIsClear(move)) {
             return false;
         }
 
-        var targetSquare = state.pieceAt(toPos);
-        if (targetSquare.color == color) {
+        if (state.pieceAt(toPos).color == color) {
             return false;
         }
 
@@ -236,9 +234,8 @@ var rules = {
 
         var rookFromFile = kingDirection == 1 ? 7 : 0;
         var rookFromPos = [rank, rookFromFile];
-        var squares = createMove(rookFromPos, kingPos).lineOfSight();
 
-        return state.allSquaresEmpty(squares);
+        return state.pathIsClear(createMove(rookFromPos, kingPos));
     },
     isEnPassant: function isEnPassant(move, state) {
         var piece = state.pieceAt(move.fromPos);
@@ -338,10 +335,11 @@ var createState = function createState(layout) {
 
         pieceAt: pieceAt,
 
-        allSquaresEmpty: function allSquaresEmpty(positions) {
-            return positions.every(function (pos) {
-                return this.pieceAt(pos) === EMPTY;
-            }.bind(this));
+        pathIsClear: function pathIsClear(move) {
+            var piece = this.pieceAt(move.fromPos);
+            return piece.path(move).every(function (pos) {
+                return pieceAt(pos) === EMPTY;
+            });
         },
 
         makeMove: function makeMove(fromPos, toPos) {
