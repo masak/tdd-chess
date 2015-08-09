@@ -20,8 +20,16 @@ var pieceRules = {
         moveIsLegal: function moveIsNeverLegalByDefault(move) {
             return false;
         },
-        path: function lineOfSightByDefault(move) {
-            return move.lineOfSight();
+        path: function path(fromPos, toPos) {
+            var positions = [];
+            var rank = fromPos[0] + Math.sign(toPos[0] - fromPos[0]);
+            var file = fromPos[1] + Math.sign(toPos[1] - fromPos[1]);
+            while (rank !== toPos[0] || file !== toPos[1]) {
+                positions.push([rank, file]);
+                rank += Math.sign(toPos[0] - rank);
+                file += Math.sign(toPos[1] - file);
+            }
+            return positions;
         },
         pawnCheck: function pawnCheckIsTrueByDefault(move, state) {
             return true;
@@ -159,18 +167,6 @@ var createMove = function createMove(fromPos, toPos) {
             return Math.sign(toPos[1] - fromPos[1]);
         },
 
-        lineOfSight: function lineOfSight() {
-            var positions = [];
-            var rank = fromPos[0] + this.rankDirection();
-            var file = fromPos[1] + this.fileDirection();
-            while (rank !== toPos[0] || file !== toPos[1]) {
-                positions.push([rank, file]);
-                rank += Math.sign(toPos[0] - rank);
-                file += Math.sign(toPos[1] - file);
-            }
-            return positions;
-        },
-
         // this function only makes sense to call if the move is a castling move
         rooksMove: function rooksMove() {
             var rank = fromPos[0],
@@ -186,7 +182,7 @@ var rules = {
     isLegal: function isLegal(move, state) {
         var piece = state.pieceAt(move.fromPos),
             isNormalMove = piece.moveIsLegal(move) &&
-                 state.pathIsClear(move) &&
+                 state.pathIsClear(move.fromPos, move.toPos) &&
                  state.pieceAt(move.toPos).color != piece.color &&
                  piece.pawnCheck(move, state),
             isCastlingOrEnPassantOrNormal =
@@ -219,7 +215,7 @@ var rules = {
             !rookAlreadyMoved &&
             rank === player[piece.color].homeRank &&
             state.pieceAt(rookFromPos).type == 'rook' &&
-            state.pathIsClear(createMove(rookFromPos, kingPos));
+            state.pathIsClear(rookFromPos, kingPos);
     },
     isEnPassant: function isEnPassant(move, state) {
         var piece = state.pieceAt(move.fromPos);
@@ -321,9 +317,9 @@ var createState = function createState(layout) {
 
         emptyPosAt: emptyPosAt,
 
-        pathIsClear: function pathIsClear(move) {
-            var piece = this.pieceAt(move.fromPos);
-            return piece.path(move).every(emptyPosAt);
+        pathIsClear: function pathIsClear(fromPos, toPos) {
+            var piece = this.pieceAt(fromPos);
+            return piece.path(fromPos, toPos).every(emptyPosAt);
         },
 
         makeMove: function makeMove(fromPos, toPos) {
