@@ -290,15 +290,19 @@ var createState = function createState(layout) {
         ];
     }
 
-    var movePieceOnBoard = function movePieceOnBoard(move) {
-        var fromPos = move.fromPos;
-        var toPos = move.toPos;
+    var removePiece = function removePiece(pos) {
+        var rank = pos[0],
+            file = pos[1];
+        board[rank][file] = EMPTY;
+    };
+
+    var movePiece = function movePiece(fromPos, toPos) {
         var fromRank = fromPos[0],
             fromFile = fromPos[1],
             toRank   = toPos[0],
             toFile   = toPos[1];
         board[toRank][toFile] = board[fromRank][fromFile];
-        board[fromRank][fromFile] = EMPTY;
+        removePiece(fromPos);
     };
 
     var piecesMoved = {};
@@ -353,7 +357,9 @@ var createState = function createState(layout) {
                     toPos.length == 2) {
                 move = createMove(fromPos, toPos);
             } else {
-                move = fromPos;
+                move = fromPos; // it wasn't a pos, so it's a move
+                fromPos = move.fromPos;
+                toPos = move.toPos;
             }
 
             if (rules.isCastling(move, this)) {
@@ -363,14 +369,12 @@ var createState = function createState(layout) {
                 var rookFromPos = [rank, rookFromFile];
                 var rookToPos = [rank, rookToFile];
 
-                movePieceOnBoard(createMove(rookFromPos, rookToPos));
+                movePiece(rookFromPos, rookToPos);
             }
             markPieceMoved(move.fromPos);
 
             if (rules.isEnPassant(move, this)) {
-                var pawnRank = this.enPassant.pawnPos[0],
-                    pawnFile = this.enPassant.pawnPos[1];
-                this.board[pawnRank][pawnFile] = EMPTY;
+                removePiece(this.enPassant.pawnPos);
             }
             if (rules.isPawnDoubleAdvance(move, this)) {
                 this.enPassant.isPossible = true;
@@ -383,7 +387,7 @@ var createState = function createState(layout) {
                 this.enPassant.isPossible = false;
             }
 
-            movePieceOnBoard(move);
+            movePiece(fromPos, toPos);
             this.playerOnTurn = oppositePlayer(this.playerOnTurn);
         }
     });
