@@ -233,10 +233,6 @@ var rules = {
     }
 };
 
-var oppositePlayer = function oppositePlayer(color) {
-    return color === 'white' ? 'black' : 'white';
-};
-
 var isPosition = function isPosition(pos) {
     return pos instanceof Array && pos.length == 2 &&
         typeof pos[0] === "number" && typeof pos[1] === "number";
@@ -343,7 +339,7 @@ var createState = function createState(layout) {
             }
 
             movePiece(move);
-            this.playerOnTurn = oppositePlayer(this.playerOnTurn);
+            this.playerOnTurn = player[this.playerOnTurn].opponent;
             this.previousMove = move;
         }
     });
