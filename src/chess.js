@@ -6,9 +6,7 @@ var pieceRules = {
             return false;
         },
         intermediatePositions: function lineOfSightByDefault(move) {
-            return this.moveIsLegal(move)
-                ? move.lineOfSight()
-                : [];
+            return move.lineOfSight();
         }
     },
     rook: {
@@ -50,11 +48,6 @@ var pieceRules = {
                 validNonCaptureMovement = fd == 0 && (rd == 1 ||
                 (rd == 2 && (move.fromPos[0] == 6 || move.fromPos[0] == 1)));
             return validCaptureMovement || validNonCaptureMovement;
-        },
-        intermediatePositions: function pawnIntermediatePositions(move) {
-            return move.staysInFile()
-                ? move.lineOfSight()
-                : [];
         }
     }
 };
@@ -138,15 +131,13 @@ var createMove = function createMove(fromPos, toPos) {
         },
 
         lineOfSight: function lineOfSight() {
-            var rd = this.rankDirection();
-            var rf = this.fileDirection();
             var positions = [];
-            var rank = fromPos[0] + rd;
-            var file = fromPos[1] + rf;
+            var rank = fromPos[0] + this.rankDirection();
+            var file = fromPos[1] + this.fileDirection();
             while (rank !== toPos[0] || file !== toPos[1]) {
                 positions.push([rank, file]);
-                rank += rd;
-                file += rf;
+                rank += Math.sign(toPos[0] - rank);
+                file += Math.sign(toPos[1] - file);
             }
             return positions;
         }
@@ -159,10 +150,10 @@ var pawnAdvanceDirection = function pawnAdvanceDirection(color) {
 
 var rules = {
     isLegal: function isLegal(move, state) {
-        var fromPos = move.fromPos;
-        var toPos = move.toPos;
-        var piece = state.pieceAt(fromPos);
-        var color = piece.color;
+        var fromPos = move.fromPos,
+            toPos = move.toPos,
+            piece = state.pieceAt(fromPos),
+            color = piece.color;
 
         if (color != state.playerOnTurn) {
             return false;
@@ -174,6 +165,10 @@ var rules = {
 
         if (this.isEnPassant(move, state)) {
             return true;
+        }
+
+        if (!piece.moveIsLegal(move)) {
+            return false;
         }
 
         var squares = piece.intermediatePositions(move);
@@ -198,7 +193,7 @@ var rules = {
             }
         }
 
-        return piece.moveIsLegal(move);
+        return true;
     },
     isCastling: function isCastling(move, state) {
         var kingPos = move.fromPos;
