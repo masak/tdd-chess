@@ -278,7 +278,7 @@ var createState = function createState(layout) {
             wq = WHITE_QUEEN, wk = WHITE_KING, wp = WHITE_PAWN,
             __ = EMPTY;
 
-        var chessLayout = [
+        board = [
             [br, bn, bb, bq, bk, bb, bn, br],
             [bp, bp, bp, bp, bp, bp, bp, bp],
             [__, __, __, __, __, __, __, __],
@@ -288,10 +288,6 @@ var createState = function createState(layout) {
             [wp, wp, wp, wp, wp, wp, wp, wp],
             [wr, wn, wb, wq, wk, wb, wn, wr]
         ];
-
-        for (i = 0; i < chessLayout.length; i++) {
-            board[i] = chessLayout[i];
-        }
     }
 
     var movePieceOnBoard = function movePieceOnBoard(move) {
