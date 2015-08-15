@@ -441,13 +441,45 @@
             .makeMove([6, 7], [5, 6])
             .makeMove([3, 0], [4, 0])   // two inconsequential moves
         ;
-        
+
         var move = createMove([3, 4], [2, 3]);
         assert.ok(!rules.isLegal(move, state),
                   "pawn missed its chance to capture en passant");
     });
 
-    // promotion
+    QUnit.test("pawn promotion", function (assert) {
+        var state = createState('chess')
+            .makeMove([6, 5], [4, 5])
+            .makeMove([1, 6], [3, 6])
+            .makeMove([4, 5], [3, 6])   // white pawn takes black pawn
+            .makeMove([1, 0], [2, 0])
+            .makeMove([3, 6], [2, 6])
+            .makeMove([2, 0], [3, 0])
+            .makeMove([2, 6], [1, 6])
+            .makeMove([0, 6], [2, 5])   // move knight out of the way
+            .makeMove([1, 6], [0, 5])
+        ;
+
+        assert.ok(state.board[0][5] === pieces.white.queen,
+            "pawn was promoted to a queen");
+    });
+
+    QUnit.test("pawn promotion to a different piece", function (assert) {
+        var state = createState('chess')
+            .makeMove([6, 5], [4, 5])
+            .makeMove([1, 6], [3, 6])
+            .makeMove([4, 5], [3, 6])   // white pawn takes black pawn
+            .makeMove([1, 0], [2, 0])
+            .makeMove([3, 6], [2, 6])
+            .makeMove([2, 0], [3, 0])
+            .makeMove([2, 6], [1, 6])
+            .makeMove([0, 6], [2, 5])   // move knight out of the way
+            .makeMove([1, 6], [0, 5], 'rook')
+        ;
+
+        assert.ok(state.board[0][5] === pieces.white.rook,
+            "pawn was promoted to a rook instead of a queen");
+    });
 
     // check
     // player cannot put himself into check

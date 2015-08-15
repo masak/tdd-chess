@@ -7,12 +7,14 @@ var createMove, rules, createState, pieces, EMPTY;
         white: {
             homeRank: 7,
             pawnRank: 6,
+            promotionRank: 0,
             pawnAdvanceDirection: -1,
             opponent: 'black'
         },
         black: {
             homeRank: 0,
             pawnRank: 1,
+            promotionRank: 7,
             pawnAdvanceDirection: +1,
             opponent: 'white'
         }
@@ -144,12 +146,13 @@ var createMove, rules, createState, pieces, EMPTY;
 
     EMPTY = createPiece('none', 'none');
 
-    createMove = function createMove(fromPos, toPos) {
+    createMove = function createMove(fromPos, toPos, promoteTo) {
         var Move = function Move() {};
 
         return extend(new Move(), {
             fromPos: fromPos,
             toPos: toPos,
+            promoteTo: promoteTo,
 
             rankDistance: function rankDistance() {
                 return Math.abs(toPos[0] - fromPos[0]);
@@ -238,6 +241,12 @@ var createMove, rules, createState, pieces, EMPTY;
                     previousMove.toPos[1] === move.toPos[1];
 
             return piece.type === 'pawn' && pawnJustDoubleAdvanced;
+        },
+        isPromotion: function isPromotion(move, state) {
+            var piece = state.pieceAt(move.fromPos),
+                movingToLastRank = move.toPos[0] === player[piece.color].promotionRank;
+
+            return piece.type === 'pawn' && movingToLastRank;
         }
     };
 
@@ -283,14 +292,6 @@ var createMove, rules, createState, pieces, EMPTY;
             ];
         }
 
-        var removePiece = function removePiece(pos) {
-            var rank = pos[0],
-                file = pos[1];
-            board[rank][file] = EMPTY;
-        };
-
-        var piecesMoved = {};
-
         var pieceAt = function pieceAt(pos) {
             return board[pos[0]][pos[1]];
         };
@@ -298,6 +299,24 @@ var createMove, rules, createState, pieces, EMPTY;
         var emptyPosAt = function emptyPosAt(pos) {
             return pieceAt(pos) == EMPTY;
         };
+
+        var removePiece = function removePiece(pos) {
+            var rank = pos[0],
+                file = pos[1];
+            board[rank][file] = EMPTY;
+        };
+
+        var promotePiece = function promotePiece(pos, promoteTo) {
+            var rank = pos[0],
+                file = pos[1],
+                oldPiece = pieceAt(pos),
+                newType = promoteTo || 'queen',
+                newPiece = pieces[oldPiece.color][newType];
+
+            board[rank][file] = newPiece;
+        };
+
+        var piecesMoved = {};
 
         var movePiece = function movePiece(move) {
             var fromRank = move.fromPos[0],
@@ -336,9 +355,9 @@ var createMove, rules, createState, pieces, EMPTY;
                 return piece.path(fromPos, toPos).every(emptyPosAt);
             },
 
-            makeMove: function makeMove(fromPos, toPos) {
+            makeMove: function makeMove(fromPos, toPos, promoteTo) {
                 var needsCoercion = isPosition(fromPos) && isPosition(toPos),
-                    move = needsCoercion ? createMove(fromPos, toPos) : fromPos;
+                    move = needsCoercion ? createMove(fromPos, toPos, promoteTo) : fromPos;
 
                 if (rules.isCastling(move, this)) {
                     movePiece(move.rooksMove());
@@ -348,7 +367,12 @@ var createMove, rules, createState, pieces, EMPTY;
                     removePiece(this.previousMove.toPos);
                 }
 
+                if (rules.isPromotion(move, this)) {
+                    promotePiece(move.fromPos, move.promoteTo);
+                }
+
                 movePiece(move);
+
                 this.playerOnTurn = player[this.playerOnTurn].opponent;
                 this.previousMove = move;
 

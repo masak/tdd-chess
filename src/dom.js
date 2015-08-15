@@ -1,4 +1,4 @@
-/*global createState, $, createMove, rules */
+/*global createState, $, createMove, rules, pieces */
 
 var init;
 
@@ -20,6 +20,17 @@ var init;
         }
     };
 
+    var promotionTypes = ['rook', 'knight', 'bishop', 'queen'];
+    var $promotionMenus = $('#promotion-menu-white, #promotion-menu-black');
+
+    var initializePromotionMenus = function initializePromotionMenus() {
+        for (var i = 0; i < promotionTypes.length; i++) {
+            var type = promotionTypes[i];
+            var $piece = $('<span></span>').html(pieces.black[type].symbol);
+            $promotionMenus.append($piece);
+        }
+    };
+
     var domUpdate = function domUpdate() {
         var player = state.playerOnTurn,
             playerCapitalized = player.substring(0, 1).toUpperCase() +
@@ -30,14 +41,15 @@ var init;
         $('#board tr').each(function (i, row) {
             $(row).find('td').each(function (j, cell) {
                 $(cell).removeClass("white black");
-                $(cell).html(state.board[i][j].symbol);
-                $(cell).addClass(state.board[i][j].color);
+                $(cell).html(state.pieceAt([i, j]).symbol);
+                $(cell).addClass(state.pieceAt([i, j]).color);
             });
         });
     };
 
     var initializePlacementLogic = function initializePlacementLogic() {
-        var selectedSquare;
+        var moveFromSquare;
+        var moveToSquare;
 
         var posFromSquare = function (table, sought) {
             var pos;
@@ -55,35 +67,64 @@ var init;
             var pos = posFromSquare($('#board'), event.target);
             var friendlyPiece = state.board[pos[0]][pos[1]].color ===
                 state.playerOnTurn;
-            if (selectedSquare && !friendlyPiece) {
-                if (event.target === selectedSquare) {
+            if (moveFromSquare && !friendlyPiece) {
+                if (event.target === moveFromSquare) {
                     return;
                 }
-                var fromPos = posFromSquare($('#board'), selectedSquare);
+                var fromPos = posFromSquare($('#board'), moveFromSquare);
                 var toPos = pos;
                 var move = createMove(fromPos, toPos);
+                if (rules.isPromotion(move, state)) {
+                    var color = state.pieceAt(fromPos).color,
+                        menu = $('#promotion-menu-' + color),
+                        left = event.pageX - parseInt(menu.css('width')) / 2,
+                        top = event.pageY - parseInt(menu.css('height')) / 2;
+
+                    menu.css('left', left).css('top', top).show();
+
+                    moveToSquare = event.target;
+                    return;
+                }
                 if (rules.isLegal(move, state)) {
                     state.makeMove(move);
                     domUpdate();
                 } else {
+                    $promotionMenus.hide();
                     $('#board').addClass('illegal-move');
                     setTimeout(function () {
                         $('#board').removeClass('illegal-move');
                     }, 2000);
                 }
 
-                $(selectedSquare).removeClass('selected');
-                selectedSquare = undefined;
+                $(moveFromSquare).removeClass('selected');
+                moveFromSquare = undefined;
             } else if (friendlyPiece) {
-                $(selectedSquare).removeClass('selected');
-                selectedSquare = event.target;
-                $(selectedSquare).addClass('selected');
+                $promotionMenus.hide();
+                $(moveFromSquare).removeClass('selected');
+                moveFromSquare = event.target;
+                $(moveFromSquare).addClass('selected');
             }
+        });
+
+        $promotionMenus.on('click', 'span', function(event) {
+            var n = $(this).prevAll().length;
+            var type = promotionTypes[n];
+
+            var fromPos = posFromSquare($('#board'), moveFromSquare);
+            var toPos = posFromSquare($('#board'), moveToSquare);
+            var move = createMove(fromPos, toPos, type);
+
+            state.makeMove(move);
+            $promotionMenus.hide();
+            $(moveFromSquare).removeClass('selected');
+            moveFromSquare = undefined;
+            domUpdate();
         });
     };
     
     init = function init() {
         initializeBoard();
+        initializePromotionMenus();
         initializePlacementLogic();
         domUpdate();
     };

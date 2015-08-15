@@ -1,3 +1,33 @@
+#promotion-menu-white, #promotion-menu-black {
+  width: 160px;
+  height: 60px;
+
+  text-align: center;
+  font-family: sans;
+  font-size: 32pt;
+
+  background: white;
+  border: solid 1px #333;
+  cursor: default;
+  padding: 5px;
+
+  -moz-box-shadow:    6px 6px 5px 2px #999;
+  -webkit-box-shadow: 6px 6px 5px 2px #999;
+  box-shadow:         6px 6px 5px 2px #999;
+
+  position: absolute;
+  display: none;
+}
+
+#promotion-menu-white {
+  color: white;
+  text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+}
+
+#promotion-menu-white span:hover, #promotion-menu-black span:hover {
+  background: #ddf;
+}
+
 #status {
   width: 494px;
 
