@@ -1,6 +1,4 @@
-var createMove, rules, createState, WHITE_ROOK, WHITE_KNIGHT, WHITE_BISHOP,
-    WHITE_QUEEN, WHITE_KING, WHITE_PAWN, BLACK_ROOK, BLACK_KNIGHT,
-    BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BLACK_PAWN, EMPTY;
+var createMove, rules, createState, pieces, EMPTY;
 
 (function chessIIFE() {
     'use strict';
@@ -125,19 +123,24 @@ var createMove, rules, createState, WHITE_ROOK, WHITE_KNIGHT, WHITE_BISHOP,
         });
     };
 
-    WHITE_ROOK = createPiece('white', 'rook');
-    WHITE_KNIGHT = createPiece('white', 'knight');
-    WHITE_BISHOP = createPiece('white', 'bishop');
-    WHITE_QUEEN = createPiece('white', 'queen');
-    WHITE_KING = createPiece('white', 'king');
-    WHITE_PAWN = createPiece('white', 'pawn');
-
-    BLACK_ROOK = createPiece('black', 'rook');
-    BLACK_KNIGHT = createPiece('black', 'knight');
-    BLACK_BISHOP = createPiece('black', 'bishop');
-    BLACK_QUEEN = createPiece('black', 'queen');
-    BLACK_KING = createPiece('black', 'king');
-    BLACK_PAWN = createPiece('black', 'pawn');
+    pieces = {
+        white: {
+            rook: createPiece('white', 'rook'),
+            knight: createPiece('white', 'knight'),
+            bishop: createPiece('white', 'bishop'),
+            queen: createPiece('white', 'queen'),
+            king: createPiece('white', 'king'),
+            pawn: createPiece('white', 'pawn')
+        },
+        black: {
+            rook: createPiece('black', 'rook'),
+            knight: createPiece('black', 'knight'),
+            bishop: createPiece('black', 'bishop'),
+            queen: createPiece('black', 'queen'),
+            king: createPiece('black', 'king'),
+            pawn: createPiece('black', 'pawn')
+        }
+    };
 
     EMPTY = createPiece('none', 'none');
 
@@ -260,10 +263,12 @@ var createMove, rules, createState, WHITE_ROOK, WHITE_KNIGHT, WHITE_BISHOP,
         }
 
         if (layout === "chess") {
-            var br = BLACK_ROOK, bn = BLACK_KNIGHT, bb = BLACK_BISHOP,
-                bq = BLACK_QUEEN, bk = BLACK_KING, bp = BLACK_PAWN,
-                wr = WHITE_ROOK, wn = WHITE_KNIGHT, wb = WHITE_BISHOP,
-                wq = WHITE_QUEEN, wk = WHITE_KING, wp = WHITE_PAWN,
+            var br = pieces.black.rook, bn = pieces.black.knight,
+                bb = pieces.black.bishop, bq = pieces.black.queen,
+                bk = pieces.black.king, bp = pieces.black.pawn,
+                wr = pieces.white.rook, wn = pieces.white.knight,
+                wb = pieces.white.bishop, wq = pieces.white.queen,
+                wk = pieces.white.king, wp = pieces.white.pawn,
                 __ = EMPTY;
 
             board = [
