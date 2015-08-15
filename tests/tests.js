@@ -1,7 +1,7 @@
 /*global createState, createMove, rules, QUnit, WHITE_ROOK, WHITE_KNIGHT,
     WHITE_BISHOP, WHITE_QUEEN, WHITE_KING, WHITE_PAWN, BLACK_ROOK,
     BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BLACK_PAWN, EMPTY */
-(function () {
+(function testsIIFE() {
     'use strict';
 
     var checkMoves = function (assert, conf) {

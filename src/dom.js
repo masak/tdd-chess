@@ -2,7 +2,7 @@
 
 var init;
 
-(function () {
+(function domIIFE() {
     'use strict';
 
     var state = createState('chess');
