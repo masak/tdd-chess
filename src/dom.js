@@ -107,7 +107,7 @@ var init;
         });
 
         $promotionMenus.on('click', 'span', function(event) {
-            var n = $(this).prevAll().length;
+            var n = $promotionMenus.find('span').index(event.target);
             var type = promotionTypes[n];
 
             var fromPos = posFromSquare($('#board'), moveFromSquare);
