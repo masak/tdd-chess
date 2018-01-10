@@ -163,11 +163,11 @@ var createMove, rules, createState, pieces, EMPTY;
             },
 
             staysInRank: function staysInRank() {
-                return this.rankDistance(fromPos, toPos) === 0;
+                return this.rankDistance() === 0;
             },
 
             staysInFile: function staysInFile() {
-                return this.fileDistance(fromPos, toPos) === 0;
+                return this.fileDistance() === 0;
             },
 
             rankDirection: function rankDirection() {
